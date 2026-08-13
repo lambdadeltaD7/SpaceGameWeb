@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from endpoints.auth import router as auth_router
 from endpoints.admin import router as admin_router
+from endpoints.planets import router as planets_router
+from endpoints.worlds import router as worlds_router
 
 app = FastAPI()
 
@@ -18,8 +20,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router, tags=["register and auth"])
+app.include_router(auth_router, tags=["register", "auth"])
 app.include_router(admin_router, tags=["admin stuff"])
+app.include_router(planets_router, tags=["planets"])
+app.include_router(worlds_router, tags=["worlds"])
+
+
 
 
 

@@ -8,6 +8,28 @@ CREATE TABLE IF NOT EXISTS users(
     res2 INT CHECK(res2 >= 0)
 );
 
+
+CREATE TABLE IF NOT EXISTS worlds(
+    world_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INT,
+    seed INT CHECK(seed >= 0),
+    w INT CHECK( (w >= 16) AND (w <= 64) ),
+    h INT CHECK( (h >= 16) AND (h <= 64) ),
+    is_pulic BOOLEAN
+);
+
+
+CREATE TABLE IF NOT EXISTS planets(
+    planet_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    world_id INT,
+    res1 INT CHECK(res1 >= 0),
+    res2 INT CHECK(res2 >= 0),
+    x INT CHECK(x >= 0),
+    y INT CHECK(y >= 0),
+    shield_on BOOLEAN
+);
+
+
 INSERT INTO 
 users (user_name, user_email, user_password, is_admin, res1, res2) 
 VALUES
