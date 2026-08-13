@@ -24,7 +24,7 @@ class WorldsSchemaDB(Base):
     seed: Mapped[int]
     w: Mapped[int]
     h: Mapped[int]
-    is_pulic: Mapped[bool]
+    is_public: Mapped[bool]
 
 
 class PlanetsSchemaDB(Base):

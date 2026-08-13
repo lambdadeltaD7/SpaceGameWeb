@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS worlds(
     seed INT CHECK(seed >= 0),
     w INT CHECK( (w >= 16) AND (w <= 64) ),
     h INT CHECK( (h >= 16) AND (h <= 64) ),
-    is_pulic BOOLEAN
+    is_public BOOLEAN
 );
 
 

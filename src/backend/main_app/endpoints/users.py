@@ -1,73 +1,72 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 
-from typing import Annotated
-
 from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, text
 
+from typing import Annotated
+
 from endpoints.admin import check_admin
 
-from pd_models import WorldsSchemaPD
-from db_models import WorldsSchemaDB
+from pd_models import UsersSchemaPD
+from db_models import UsersSchemaDB
 
 from db_connection import sql_engine
 
-router = APIRouter(prefix="/api/v1/worlds")
+router = APIRouter(prefix="/api/v1/users")
 
 
 @router.get("/")
-def get_worlds(user_id: int | None = None):
+def get_users():
     with Session(sql_engine) as ses:
-        stmt = select(WorldsSchemaDB)
-        if user_id is not None:
-            stmt = stmt.where(WorldsSchemaDB.user_id==user_id)
+        stmt = select(UsersSchemaDB)
         result = ses.scalars(stmt).all()
     return [p for p in result]
 
 
-@router.get("/{world_id}")
-def get_world(world_id: int):
+@router.get("/{user_id}")
+def get_user(user_id: int):
     with Session(sql_engine) as ses:
-        stmt = select(WorldsSchemaDB).where(WorldsSchemaDB.world_id==world_id)
+        stmt = select(UsersSchemaDB).where(UsersSchemaDB.user_id==user_id)
         result = ses.scalar(stmt)
     if result:
         return result
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"there is no world with {world_id=}"
+            detail=f"there is no user with {user_id=}"
         )
 
 
 @router.post("/")
-def create_world(
+def create_user(
     check: Annotated[bool, Depends(check_admin)],
-    world: WorldsSchemaPD
+    user: UsersSchemaPD
 ):
     with Session(sql_engine) as ses:
-        world_obj = WorldsSchemaDB(**dict(world))
-        ses.add(world_obj)
+        user_obj = UsersSchemaDB(**dict(user))
+        ses.add(user_obj)
         ses.commit()
-        ses.refresh(world_obj)
-    return world_obj
+        ses.refresh(user_obj)
+    return user_obj
 
 
-@router.patch("/{world_id}")
-def edit_world(
+@router.patch("/{user_id}")
+def edit_user(
     check: Annotated[bool, Depends(check_admin)],
-    world_id: int,
-    is_public: bool | None = None
+    user_id: int,
+    is_admin: bool | None = None
 ):
-    if is_public is None:
+    if is_admin is None:
         return 200
 
     with Session(sql_engine) as ses:
-        stmt = text(f"""
-            UPDATE worlds
+        txt = f"""
+            UPDATE users
             SET 
-            {is_public=}
-            WHERE world_id = {world_id}
-        """)
+            {is_admin=}
+            WHERE user_id = {user_id}
+        """
+        stmt = text(txt)
         ses.execute(stmt)
         ses.commit()
     
@@ -75,13 +74,13 @@ def edit_world(
 
 
 
-@router.delete("/{world_id}")
-def delete_world(
+@router.delete("/{user_id}")
+def delete_user(
     check: Annotated[bool, Depends(check_admin)],
-    world_id: int
+    user_id: int
 ):
     with Session(sql_engine) as ses:
-        stmt = delete(WorldsSchemaDB).where(WorldsSchemaDB.world_id==world_id)
+        stmt = delete(UsersSchemaDB).where(UsersSchemaDB.user_id==user_id)
         result = ses.execute(stmt)
         ses.commit()
     return {"log": f"deleted {result.rowcount} rows"}
