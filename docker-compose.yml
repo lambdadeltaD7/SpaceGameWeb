@@ -1,0 +1,37 @@
+
+services:
+  postgres_cluster:
+    build: ./src/backend/db_cluster/postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - 8001:5432
+
+  redis_cluster:
+    build: ./src/backend/db_cluster/redis
+    ports:
+      - 8002:6379
+
+  main_app:
+    build: ./src/backend/main_app
+    env_file:
+      - .env
+    ports:
+      - 8003:8080
+    depends_on:
+      - postgres_cluster
+      - redis_cluster
+
+  nginx_app:
+    build: ./src/backend/nginx_app
+    ports:
+      - 8004:80
+    volumes:
+      - ./src/frontend/html:/usr/share/nginx/static/html:ro
+      - ./src/frontend/css:/usr/share/nginx/static/css:ro
+      - ./src/frontend/js:/usr/share/nginx/static/js:ro
+      - ./src/frontend/img:/usr/share/nginx/static/img:ro
+    depends_on:
+      - main_app

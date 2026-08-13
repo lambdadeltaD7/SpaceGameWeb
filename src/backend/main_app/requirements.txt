@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+uuid
+typing
+sqlalchemy
+redis
+pydantic
+pydantic[email]
+psycopg[binary]
