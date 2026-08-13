@@ -55,8 +55,22 @@ def get_or_create_session(request: Request, response: Response):
     return session_id
 
 
+@router.get("/online_info")
+def online_info():
+    _, keys = r_sessions.scan(0, "*")
+    logged_cnt = 0
+    online_cnt = 0
+    for k in keys:
+        user_data = r_sessions.hgetall(k)
+        online_cnt += 1
+        if user_data["user_id"] != "":
+            logged_cnt +=1
+            
+    return {"online_cnt":online_cnt, "logged_cnt":logged_cnt}
+
+
 @router.get("/session_info")
-def info(session_id: Annotated[str, Depends(get_or_create_session)]):
+def session_info(session_id: Annotated[str, Depends(get_or_create_session)]):
     try:
         uname = r_sessions.hget(session_id, "username")
         if uname == "":
