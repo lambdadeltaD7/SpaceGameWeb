@@ -118,7 +118,7 @@ async function render_world(world_info, planets) {
         if(p.shield_on){
             grid[p.y][p.x] = 2;
         }
-        p_dict[`${p.y}_${p.x}`] = p;
+        p_dict[ `${p.y}_${p.x}` ] = p;
     }
 
     console.log(p_dict);

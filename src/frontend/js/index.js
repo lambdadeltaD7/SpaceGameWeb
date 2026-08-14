@@ -7,6 +7,8 @@ const status_text = document.getElementById('status_text');
 
 const online_info_text = document.getElementById('online_info_text');
 
+const goto_transactions_btn = document.getElementById('goto_transactions_btn');
+
 const worlds_btn = document.getElementById('worlds_btn');
 const world_seed_input = document.getElementById('world_seed_input');
 const world_gen_btn = document.getElementById('world_gen_btn');
@@ -86,6 +88,10 @@ worlds_btn.addEventListener('click', async () => {
 
 world_gen_btn.addEventListener('click', async () => {
     await gen_world();
+});
+
+goto_transactions_btn.addEventListener('click', () => {
+    window.location.href = base_url + "/transactions";
 });
 
 queueMicrotask( async() => {await init();});
