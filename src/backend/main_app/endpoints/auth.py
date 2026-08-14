@@ -24,7 +24,8 @@ def create_session():
         session_id,
         mapping={
             "user_id": "",
-            "username" : ""
+            "username" : "",
+            "is_admin" : "",
         }
     )
     return session_id
@@ -73,10 +74,21 @@ def online_info():
 def session_info(session_id: Annotated[str, Depends(get_or_create_session)]):
     try:
         uname = r_sessions.hget(session_id, "username")
+        uid = r_sessions.hget(session_id, "user_id")
+        is_admin = r_sessions.hget(session_id, "is_admin")
         if uname == "":
-            return {"msg":f"(anonimous session) with {session_id=}", "is_logged":False}
+            return {
+                "msg":f"(anonimous session) with {session_id=}",
+                "is_logged":False
+            }
         else:
-            return {"msg":f"hi, {uname}! with {session_id=})", "is_logged":True} 
+            return {
+                "msg":f"hi, {uname}! with {session_id=})",
+                "is_logged":True,
+                "username": uname,
+                "user_id": uid,
+                "is_admin": is_admin
+            } 
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -143,7 +155,7 @@ def login(
         new_session_id = create_session()
         r_sessions.hset(new_session_id, "username", user.user_name)
         r_sessions.hset(new_session_id, "user_id", result.user_id)
-
+        r_sessions.hset(new_session_id, "is_admin", int(result.is_admin))
 
         response.set_cookie(
             key=COOKIE_SESSION_ID_KEY,

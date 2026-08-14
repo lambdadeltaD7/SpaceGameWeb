@@ -6,11 +6,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, text
 
 from endpoints.admin import check_admin
+from endpoints.auth import get_or_create_session
 
 from pd_models import WorldsSchemaPD
-from db_models import WorldsSchemaDB
+from db_models import WorldsSchemaDB, PlanetsSchemaDB
 
-from db_connection import sql_engine
+from db_connection import sql_engine, r_sessions
 
 router = APIRouter(prefix="/api/v1/worlds")
 
@@ -41,9 +42,16 @@ def get_world(world_id: int):
 
 @router.post("/")
 def create_world(
-    check: Annotated[bool, Depends(check_admin)],
+    is_admin: Annotated[bool, Depends(check_admin)],
     world: WorldsSchemaPD
 ):
+
+    if not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail = "only for admins"
+        )
+
     with Session(sql_engine) as ses:
         world_obj = WorldsSchemaDB(**dict(world))
         ses.add(world_obj)
@@ -52,14 +60,37 @@ def create_world(
     return world_obj
 
 
+def check_world_ownership(world_id, session_id, is_admin):
+    true_uid = r_sessions.hget(session_id, "user_id")
+
+    with Session(sql_engine) as ses:
+        stmt = select(WorldsSchemaDB).where(WorldsSchemaDB.world_id==world_id)
+        world = ses.scalar(stmt)
+    
+        if world:
+            if (str(world.user_id) != true_uid) and (not is_admin):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail = "you must ba an owner or admin to do this"
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail = f"there is no world with {world_id=}" 
+            )
+
+
 @router.patch("/{world_id}")
 def edit_world(
-    check: Annotated[bool, Depends(check_admin)],
+    is_admin: Annotated[bool, Depends(check_admin)],
+    session_id: Annotated[str, Depends(get_or_create_session)],
     world_id: int,
     is_public: bool | None = None
 ):
     if is_public is None:
         return 200
+
+    check_world_ownership(world_id, session_id, is_admin)
 
     with Session(sql_engine) as ses:
         stmt = text(f"""
@@ -77,13 +108,23 @@ def edit_world(
 
 @router.delete("/{world_id}")
 def delete_world(
-    check: Annotated[bool, Depends(check_admin)],
+    is_admin: Annotated[bool, Depends(check_admin)],
+    session_id: Annotated[str, Depends(get_or_create_session)],
     world_id: int
 ):
+
+    check_world_ownership(world_id, session_id, is_admin)
+
     with Session(sql_engine) as ses:
-        stmt = delete(WorldsSchemaDB).where(WorldsSchemaDB.world_id==world_id)
-        result = ses.execute(stmt)
+
+        p_stmt = delete(PlanetsSchemaDB).where(PlanetsSchemaDB.world_id==world_id)
+        p_result = ses.execute(p_stmt)
+
+        w_stmt = delete(WorldsSchemaDB).where(WorldsSchemaDB.world_id==world_id)
+        w_result = ses.execute(w_stmt)
+
         ses.commit()
-    return {"log": f"deleted {result.rowcount} rows"}
+        
+    return {"log": f"deleted {w_result.rowcount} worlds and {p_result.rowcount} planets"}
 
 

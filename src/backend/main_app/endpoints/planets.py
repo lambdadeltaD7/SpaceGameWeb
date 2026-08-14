@@ -6,11 +6,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, text
 
 from endpoints.admin import check_admin
+from endpoints.auth import get_or_create_session
 
 from pd_models import PlanetsSchemaPD
-from db_models import PlanetsSchemaDB
+from db_models import PlanetsSchemaDB, WorldsSchemaDB
 
-from db_connection import sql_engine
+from db_connection import sql_engine, r_sessions
 
 router = APIRouter(prefix="/api/v1/planets")
 
@@ -41,9 +42,16 @@ def get_planet(planet_id: int):
 
 @router.post("/")
 def create_planet(
-    check: Annotated[bool, Depends(check_admin)],
+    is_admin: Annotated[bool, Depends(check_admin)],
     planet: PlanetsSchemaPD
 ):
+
+    if not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail = "only for admins"
+        )
+
     with Session(sql_engine) as ses:
         planet_obj = PlanetsSchemaDB(**dict(planet))
         ses.add(planet_obj)
@@ -52,9 +60,34 @@ def create_planet(
     return planet_obj
 
 
+def check_planet_ownership(planet_id, session_id, is_admin):
+    true_uid = r_sessions.hget(session_id, "user_id")
+
+    with Session(sql_engine) as ses:
+        stmt = select(PlanetsSchemaDB).where(PlanetsSchemaDB.planet_id==planet_id)
+        planet = ses.scalar(stmt)
+    
+        if planet:
+            world_id = planet.world_id
+            stmt = select(WorldsSchemaDB).where(WorldsSchemaDB.world_id==world_id)
+            world = ses.scalar(stmt)
+
+            if (str(world.user_id) != true_uid) and (not is_admin):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail = "you must ba an owner or admin to do this"
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail = f"there is no planet with {planet_id=}" 
+            )
+
+
 @router.patch("/{planet_id}")
 def edit_planet(
-    check: Annotated[bool, Depends(check_admin)],
+    is_admin: Annotated[bool, Depends(check_admin)],
+    session_id: Annotated[str, Depends(get_or_create_session)],
     planet_id: int,
     res1: int | None = None,
     res2: int | None = None,
@@ -63,6 +96,8 @@ def edit_planet(
     if (res1 is None) and (res2 is None) and (shield_on is None):
         return 200
     
+    check_planet_ownership(planet_id, session_id, is_admin)
+
     changes = []
 
     if res1 is not None:
@@ -88,9 +123,13 @@ def edit_planet(
 
 @router.delete("/{planet_id}")
 def delete_planet(
-    check: Annotated[bool, Depends(check_admin)],
+    is_admin: Annotated[bool, Depends(check_admin)],
+    session_id: Annotated[str, Depends(get_or_create_session)],
     planet_id: int
 ):
+
+    check_planet_ownership(planet_id, session_id, is_admin)
+
     with Session(sql_engine) as ses:
         stmt = delete(PlanetsSchemaDB).where(PlanetsSchemaDB.planet_id==planet_id)
         result = ses.execute(stmt)

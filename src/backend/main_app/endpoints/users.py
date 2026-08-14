@@ -10,7 +10,7 @@ from endpoints.admin import check_admin
 from pd_models import UsersSchemaPD
 from db_models import UsersSchemaDB
 
-from db_connection import sql_engine
+from db_connection import sql_engine, r_sessions
 
 router = APIRouter(prefix="/api/v1/users")
 
@@ -39,9 +39,16 @@ def get_user(user_id: int):
 
 @router.post("/")
 def create_user(
-    check: Annotated[bool, Depends(check_admin)],
+    is_admin: Annotated[bool, Depends(check_admin)],
     user: UsersSchemaPD
-):
+):  
+    if not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail = "only for admins"
+        )
+
+
     with Session(sql_engine) as ses:
         user_obj = UsersSchemaDB(**dict(user))
         ses.add(user_obj)
@@ -58,6 +65,13 @@ def edit_user(
 ):
     if is_admin is None:
         return 200
+
+    if not check:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail = "only for admins"
+        )
+
 
     with Session(sql_engine) as ses:
         txt = f"""
@@ -76,9 +90,16 @@ def edit_user(
 
 @router.delete("/{user_id}")
 def delete_user(
-    check: Annotated[bool, Depends(check_admin)],
+    is_admin: Annotated[bool, Depends(check_admin)],
     user_id: int
-):
+):  
+    if not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail = "only for admins"
+        )
+
+
     with Session(sql_engine) as ses:
         stmt = delete(UsersSchemaDB).where(UsersSchemaDB.user_id==user_id)
         result = ses.execute(stmt)

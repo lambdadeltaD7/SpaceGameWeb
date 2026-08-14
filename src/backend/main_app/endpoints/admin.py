@@ -31,14 +31,21 @@ def check_admin(
         with Session(sql_engine) as ses:
             stmt = select(UsersSchemaDB).where(UsersSchemaDB.user_id==int(user_id))
             result = ses.scalar(stmt)
-        if not result.is_admin:
-            raise ex
-    else:
-        raise ex
+        if result.is_admin:
+            return True
+
+    return False
 
 
 @router.get("/sessions")
 def get_sessions(is_admin: Annotated[bool, Depends(check_admin)]):
+
+    if not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail = "only for admins"
+        )
+
     _, keys = r_sessions.scan(0, "*")
     res = []
     for k in keys:
@@ -46,12 +53,22 @@ def get_sessions(is_admin: Annotated[bool, Depends(check_admin)]):
     return res
 
 
-@router.post("/generate_world")
+@router.post("/generate_world", tags=["worlds"])
 def post_generate_world(
     is_admin: Annotated[bool, Depends(check_admin)],
+    session_id: Annotated[str, Depends(get_or_create_session)],
     user_id: int,
     seed: int | None = None
 ):
+
+    true_uid = r_sessions.hget(session_id, "user_id")
+
+    if (str(user_id) != true_uid) and (not is_admin):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail = "you must be an owner or admin to do this"
+        )
+
     _world, _planets = generate_world(seed)
 
     world = WorldsSchemaDB(
