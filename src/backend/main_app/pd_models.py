@@ -37,3 +37,11 @@ class PlanetsSchemaPD(BaseModel):
     x: int = Field(ge=0)
     y: int = Field(ge=0)
     shield_on: bool
+
+
+class TransactionsSchemaPD(BaseModel):
+    user_from_id: int
+    user_to_id: int
+    res1: int = Field(ge=0)
+    res2: int = Field(ge=0)
+    created_at: int  = Field(ge=0)

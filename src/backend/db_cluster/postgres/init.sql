@@ -29,6 +29,17 @@ CREATE TABLE IF NOT EXISTS planets(
     shield_on BOOLEAN
 );
 
+-- transactions_table(transaction_id, u_from_id, u_to_id, res1, res2, datetime)
+
+CREATE TABLE IF NOT EXISTS transactions(
+    transaction_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_from_id INT,
+    user_to_id INT,
+    res1 INT CHECK(res1 >= 0),
+    res2 INT CHECK(res2 >= 0),
+    created_at BIGINT CHECK(created_at >= 0)
+);
+
 
 INSERT INTO 
 users (user_name, user_email, user_password, is_admin, res1, res2) 

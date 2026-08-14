@@ -5,6 +5,7 @@ from endpoints.admin import router as admin_router
 from endpoints.planets import router as planets_router
 from endpoints.worlds import router as worlds_router
 from endpoints.users import router as users_router
+from endpoints.transactions import router as transactions_router
 
 app = FastAPI()
 
@@ -26,6 +27,7 @@ app.include_router(admin_router, tags=["admin stuff"])
 app.include_router(planets_router, tags=["planets"])
 app.include_router(worlds_router, tags=["worlds"])
 app.include_router(users_router, tags=["users"])
+app.include_router(transactions_router, tags=["transactions"])
 
 
 

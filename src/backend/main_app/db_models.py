@@ -1,4 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import BigInteger
 
 class Base(DeclarativeBase):
     pass
@@ -37,3 +38,14 @@ class PlanetsSchemaDB(Base):
     x: Mapped[int] 
     y: Mapped[int]
     shield_on: Mapped[bool]
+
+
+class TransactionsSchemaDB(Base):
+    __tablename__ = "transactions"
+
+    transaction_id: Mapped[int] = mapped_column(primary_key=True)
+    user_from_id: Mapped[int]
+    user_to_id: Mapped[int]
+    res1: Mapped[int]
+    res2: Mapped[int]
+    created_at: Mapped[int] = mapped_column(BigInteger)
