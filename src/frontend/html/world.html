@@ -9,12 +9,16 @@
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
 </head>
 
-<body>
+<body style="position: relative;">
 
     <header id="status_bar" style="display: flex; flex-direction: row">
         <p id="world_info_txt"></p>
     </header>
     
+    <div id="planet_info_card" style="position: absolute; top: 10%;
+     left: 50%; border: solid black 5px;
+     background-color: cadetblue; color: black; display: none;"></div>
+
     <main id="space">
         <div id="game_grid" style="display: flex; flex-direction: column">
             
