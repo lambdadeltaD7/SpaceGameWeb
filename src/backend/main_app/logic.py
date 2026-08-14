@@ -20,8 +20,8 @@ def generate_world(seed: int | None = None):
         planets.append({
             "res1": random.randint(10, 100),
             "res2": random.randint(10, 100),
-            "x": random.randint(0, w),
-            "y": random.randint(0, h)
+            "x": random.randint(0, w-1),
+            "y": random.randint(0, h-1)
         })
     
     return world, planets
