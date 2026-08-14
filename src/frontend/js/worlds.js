@@ -4,11 +4,12 @@ const worlds_list = document.getElementById('worlds_list');
 const reload_worlds_btn = document.getElementById('reload_worlds_btn');
 
 
+
 let user_id = null;
 let is_admin = false;
 
 async function init(){
-    console.log("start_init");
+    // console.log("start_init");
     const result = await fetch(base_url + "/api/v1/auth/session_info");
     const data = await result.json();
 
@@ -16,12 +17,13 @@ async function init(){
         user_id = data.user_id;
         is_admin = (data.is_admin=="1");
     }
-    console.log(data);
-    console.log(`inside init ${user_id} ${is_admin}`);
-    console.log("end_init");
+    // console.log(data);
+    // console.log(`inside init ${user_id} ${is_admin}`);
+    // console.log("end_init");
 }
 
 async function check_world(world_id) {
+    cookieStore.set("world_id", world_id);
     window.location.href = base_url + "/world";
 }
 
@@ -65,9 +67,9 @@ async function render_worlds(){
 
     worlds_list.innerHTML = '';
 
-    console.log("inside render");
+    // console.log("inside render");
     // console.log(wrld.user_id);
-    console.log(user_id);
+    // console.log(user_id);
 
     for(const wrld of data){
         var info = "";
