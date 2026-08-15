@@ -99,7 +99,6 @@ def delete_user(
             detail = "only for admins"
         )
 
-
     with Session(sql_engine) as ses:
         stmt = delete(UsersSchemaDB).where(UsersSchemaDB.user_id==user_id)
         result = ses.execute(stmt)

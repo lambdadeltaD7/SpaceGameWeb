@@ -37,6 +37,23 @@ def check_admin(
     return False
 
 
+
+@router.delete("/kill_session")
+def kill_session(
+    is_admin: Annotated[bool, Depends(check_admin)],
+    session_id: str
+):
+    if not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail = "only for admins"
+        )
+
+    cnt = r_sessions.delete(session_id)
+
+    return {"log" : f"cancelled {cnt} sessions"}
+
+
 @router.get("/sessions")
 def get_sessions(is_admin: Annotated[bool, Depends(check_admin)]):
 
