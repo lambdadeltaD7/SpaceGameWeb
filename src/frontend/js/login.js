@@ -1,10 +1,12 @@
-const base_url = "http://localhost:8004" 
-
 const username_input = document.getElementById('username_input');
 const password_input = document.getElementById('password_input');
 const login_btn = document.getElementById('login_btn');
 const register_btn = document.getElementById('register_btn');
 const status_text = document.getElementById('status_text');
+
+
+const base_url = "http://localhost:8004" 
+
 
 async function init(){
     const result = await fetch(base_url + "/api/v1/auth/session_info");
@@ -33,6 +35,7 @@ login_btn.addEventListener('click', async () => {
             headers: {
                 'Content-Type': 'application/json',
             },
+            
             body: JSON.stringify(user_obj)
         }
     );
@@ -48,9 +51,10 @@ login_btn.addEventListener('click', async () => {
 
 });
 
+
 register_btn.addEventListener('click', async () => {
     window.location.href = base_url + "/registration";
 });
 
 
-init();
+queueMicrotask(async () => {await init();});

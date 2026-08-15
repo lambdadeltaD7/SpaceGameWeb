@@ -1,5 +1,3 @@
-const base_url = "http://localhost:8004";
-
 const balance_info_txt = document.getElementById('balance_info_txt');
 
 const user_to_id_input = document.getElementById('user_to_id_input');
@@ -11,6 +9,7 @@ const reload_transactions_btn = document.getElementById('reload_transactions_btn
 const transactions_list = document.getElementById('transactions_list');
 
 
+const base_url = "http://localhost:8004";
 var user_id = null;
 
 
