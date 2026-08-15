@@ -105,6 +105,9 @@ def registration(
 
     with Session(sql_engine) as ses:
         user_obj = UsersSchemaDB(**dict(user))
+        user_obj.is_admin = False
+        user_obj.res1 = 100
+        user_obj.res2 = 100
         ses.add(user_obj)
 
         try:
