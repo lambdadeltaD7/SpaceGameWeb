@@ -92,6 +92,19 @@ async function refresh_users(){
         });
         usr_card.append(kill_btn);
 
+        const change_is_admin_btn = document.createElement('button');
+        change_is_admin_btn.textContent = "change is_admin";
+        change_is_admin_btn.addEventListener('click', async () => {
+            await fetch(
+                base_url + `/api/v1/users/${usr.user_id}?is_admin=${!usr.is_admin}`,
+                {
+                    method: 'PATCH'
+                }
+            );
+            await refresh_users();
+        });
+        usr_card.append(change_is_admin_btn);
+
         users_list.append(usr_card);
     }
     
