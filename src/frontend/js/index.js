@@ -1,5 +1,3 @@
-const base_url = "http://localhost:8004" 
-
 const login_button = document.getElementById('login_button');
 const register_button = document.getElementById('register_button');
 const logout_button = document.getElementById('logout_button');
@@ -13,7 +11,11 @@ const worlds_btn = document.getElementById('worlds_btn');
 const world_seed_input = document.getElementById('world_seed_input');
 const world_gen_btn = document.getElementById('world_gen_btn');
 
+
+const base_url = "http://localhost:8004" 
+const ONLINE_INFO_UPDATE_FREQ = 3000;
 var user_id = null;
+
 
 async function init(){
     const result = await fetch(base_url + "/api/v1/auth/session_info");
@@ -50,7 +52,6 @@ async function gen_world(){
         params.append('seed', world_seed_input.value);
     }
     
-
     const result = await fetch(
         base_url + `/api/v1/admin/generate_world?${params}`,
         {
@@ -67,6 +68,7 @@ async function update_online_info(){
     const data = await result.json();
     online_info_text.textContent = `users_online: ${data.online_cnt} | users_logged: ${data.logged_cnt}`;
 }
+
 
 login_button.addEventListener('click', async () => {
     window.location.href = base_url + "/login";
@@ -85,7 +87,6 @@ worlds_btn.addEventListener('click', async () => {
     window.location.href = base_url + "/worlds";
 });
 
-
 world_gen_btn.addEventListener('click', async () => {
     await gen_world();
 });
@@ -94,6 +95,7 @@ goto_transactions_btn.addEventListener('click', () => {
     window.location.href = base_url + "/transactions";
 });
 
+
 queueMicrotask( async() => {await init();});
 queueMicrotask( async() => {await update_online_info();});
-setInterval(update_online_info, 3000);
+setInterval(update_online_info, ONLINE_INFO_UPDATE_FREQ);
