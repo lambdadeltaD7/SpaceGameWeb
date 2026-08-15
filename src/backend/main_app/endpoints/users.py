@@ -1,16 +1,16 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from typing import Annotated
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, text
 
-from typing import Annotated
-
 from endpoints.admin import check_admin
+from fastapi import APIRouter, HTTPException, status, Depends
 
 from pd_models import UsersSchemaPD
 from db_models import UsersSchemaDB
 
 from db_connection import sql_engine, r_sessions
+
 
 router = APIRouter(prefix="/api/v1/users")
 
@@ -19,21 +19,28 @@ router = APIRouter(prefix="/api/v1/users")
 def get_users():
     with Session(sql_engine) as ses:
         stmt = select(UsersSchemaDB)
-        result = ses.scalars(stmt).all()
-    return [p for p in result]
+        users = ses.scalars(stmt).all()
+    return [u for u in users]
 
 
 @router.get("/{user_id}")
 def get_user(user_id: int):
+
     with Session(sql_engine) as ses:
-        stmt = select(UsersSchemaDB).where(UsersSchemaDB.user_id==user_id)
-        result = ses.scalar(stmt)
-    if result:
-        return result
+        stmt = select(
+                UsersSchemaDB
+            ).where(
+                UsersSchemaDB.user_id == user_id
+            )
+        user = ses.scalar(stmt)
+
+    if user:
+        return user
+
     else:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"there is no user with {user_id=}"
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = f"there is no user with {user_id=}"
         )
 
 
@@ -44,18 +51,17 @@ def create_user(
 ):  
     if not is_admin:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code = status.HTTP_401_UNAUTHORIZED,
             detail = "only for admins"
         )
-
 
     with Session(sql_engine) as ses:
         user_obj = UsersSchemaDB(**dict(user))
         ses.add(user_obj)
         ses.commit()
         ses.refresh(user_obj)
-    return user_obj
 
+    return user_obj
 
 
 def kill_user_sessions(user_id: int) -> int:
@@ -81,26 +87,23 @@ def edit_user(
 
     if not check:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code = status.HTTP_401_UNAUTHORIZED,
             detail = "only for admins"
         )
 
-
     with Session(sql_engine) as ses:
-        txt = f"""
+        stmt = text(f"""
             UPDATE users
             SET 
             {is_admin=}
             WHERE user_id = {user_id}
-        """
-        stmt = text(txt)
+        """)
         ses.execute(stmt)
         ses.commit()
     
     kill_user_sessions(user_id)
 
     return 201
-
 
 
 @router.delete("/{user_id}")
@@ -110,12 +113,16 @@ def delete_user(
 ):  
     if not is_admin:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code = status.HTTP_401_UNAUTHORIZED,
             detail = "only for admins"
         )
 
     with Session(sql_engine) as ses:
-        stmt = delete(UsersSchemaDB).where(UsersSchemaDB.user_id==user_id)
+        stmt = delete(
+                UsersSchemaDB
+            ).where(
+                UsersSchemaDB.user_id == user_id
+            )
         result = ses.execute(stmt)
         ses.commit()
 
