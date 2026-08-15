@@ -1,18 +1,19 @@
 from typing import Annotated
 
-from logic import generate_world
+from logic import generate_world_dict
 
 from fastapi import (
     APIRouter, Depends,
     HTTPException, status
 )
-
 from endpoints.auth import get_or_create_session
 
-from db_models import UsersSchemaDB, WorldsSchemaDB, PlanetsSchemaDB
 from db_connection import r_sessions, sql_engine
-from sqlalchemy.orm import Session
+from db_models import UsersSchemaDB, WorldsSchemaDB, PlanetsSchemaDB
+
 from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 
 router = APIRouter(prefix="/api/v1/admin")
 
@@ -22,16 +23,18 @@ def check_admin(
 ):
     user_id = r_sessions.hget(f"ses_{session_id}", "user_id")
 
-    ex = HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail = "this is only for admins"
-    )
-
     if user_id != "":
+
         with Session(sql_engine) as ses:
-            stmt = select(UsersSchemaDB).where(UsersSchemaDB.user_id==int(user_id))
-            result = ses.scalar(stmt)
-        if result.is_admin:
+            stmt = select(
+                        UsersSchemaDB
+                    ).where(
+                        UsersSchemaDB.user_id == int(user_id)
+                    )
+
+            user_obj = ses.scalar(stmt)
+
+        if user_obj.is_admin:
             return True
 
     return False
@@ -45,16 +48,16 @@ def kill_session(
 ):
     if not is_admin:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code = status.HTTP_401_UNAUTHORIZED,
             detail = "only for admins"
         )
 
-    uinfo = r_sessions.hgetall(f"ses_{session_id}")
-    r_sessions.lrem(f"user_{uinfo["user_id"]}", 0, session_id)
+    user_info = r_sessions.hgetall(f"ses_{session_id}")
 
-    cnt = r_sessions.delete(f"ses_{session_id}")
+    r_sessions.lrem(f"user_{user_info["user_id"]}", 0, session_id)
+    cnt_deleted_sess = r_sessions.delete(f"ses_{session_id}")
 
-    return {"log" : f"cancelled {cnt} sessions"}
+    return {"log" : f"cancelled {cnt_deleted_sess} sessions"}
 
 
 @router.get("/sessions")
@@ -67,33 +70,24 @@ def get_sessions(is_admin: Annotated[bool, Depends(check_admin)]):
         )
 
     _, keys = r_sessions.scan(0, "ses_*")
-    res = []
+    
+    sessions = []
+
     for k in keys:
-        res.append({ "session_id":k[4:], "user_data":r_sessions.hgetall(k) })
-    return res
+        sessions.append({
+            "session_id" : k[4:],
+            "user_data"  : r_sessions.hgetall(k) 
+        })
+
+    return sessions
 
 
-@router.post("/generate_world", tags=["worlds"])
-def post_generate_world(
-    is_admin: Annotated[bool, Depends(check_admin)],
-    session_id: Annotated[str, Depends(get_or_create_session)],
-    user_id: int,
-    seed: int | None = None
-):
-
-    true_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
-
-    if (str(user_id) != true_uid) and (not is_admin):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail = "you must be an owner or admin to do this"
-        )
-
-    _world, _planets = generate_world(seed)
+def init_world_db(seed: int, user_id: int):
+    _world, _planets = generate_world_dict(seed)
 
     world = WorldsSchemaDB(
-        user_id=user_id,
-        is_public=True,
+        user_id = user_id,
+        is_public = True,
         **_world
     )
 
@@ -107,6 +101,27 @@ def post_generate_world(
                 **p
             )
         )
+    
+    return _world["seed"], world, planets
+
+
+@router.post("/generate_world", tags=["worlds"])
+def post_generate_world(
+    is_admin: Annotated[bool, Depends(check_admin)],
+    session_id: Annotated[str, Depends(get_or_create_session)],
+    user_id: int,
+    seed: int | None = None
+):
+
+    requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
+
+    if (str(user_id) != requester_uid) and (not is_admin):
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "you must be an owner or admin to do this"
+        )
+
+    world_seed, world, planets = init_world_db(seed, user_id)
 
     with Session(sql_engine) as ses:
         ses.add(world)
@@ -119,4 +134,4 @@ def post_generate_world(
         ses.add_all(planets)
         ses.commit()
     
-    return _world["seed"]
+    return world_seed

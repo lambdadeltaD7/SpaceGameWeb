@@ -2,7 +2,7 @@ import random
 
 
 
-def generate_world(seed: int | None = None):
+def generate_world_dict(seed: int | None = None):
     seed = seed if seed is not None else random.randint(0, 1_000_000_000)
     random.seed(seed)
 
