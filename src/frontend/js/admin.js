@@ -1,8 +1,9 @@
-const base_url = "http://localhost:8004";
-
 const sessions_list = document.getElementById('sessions_list');
 const users_list = document.getElementById('users_list');
 const transactions_list = document.getElementById('transactions_list');
+
+
+const base_url = "http://localhost:8004";
 
 
 function clear_all(){
@@ -32,9 +33,9 @@ async function refresh_sessions(){
         const ses_card = document.createElement('div')
         ses_card.style = "display: flex; flex-direction: row";
 
-        const el = document.createElement('p');
-        el.textContent = JSON.stringify(ses, null, 2);
-        ses_card.append(el);
+        const ses_info = document.createElement('p');
+        ses_info.textContent = JSON.stringify(ses, null, 2);
+        ses_card.append(ses_info);
 
         const kill_btn = document.createElement('button');
         kill_btn.textContent = "kill session";
@@ -75,9 +76,9 @@ async function refresh_users(){
         const usr_card = document.createElement('div')
         usr_card.style = "display: flex; flex-direction: row";
 
-        const el = document.createElement('p');
-        el.textContent = JSON.stringify(usr, null, 2);
-        usr_card.append(el);
+        const usr_info = document.createElement('p');
+        usr_info.textContent = JSON.stringify(usr, null, 2);
+        usr_card.append(usr_info);
 
         const kill_btn = document.createElement('button');
         kill_btn.textContent = "delete user";
@@ -132,9 +133,9 @@ async function refresh_transactions(){
         const trans_card = document.createElement('div')
         trans_card.style = "display: flex; flex-direction: row";
 
-        const el = document.createElement('p');
-        el.textContent = JSON.stringify(trans, null, 2);
-        trans_card.append(el);
+        const trans_info = document.createElement('p');
+        trans_info.textContent = JSON.stringify(trans, null, 2);
+        trans_card.append(trans_info);
 
         const kill_btn = document.createElement('button');
         kill_btn.textContent = "undo transaction";
@@ -160,6 +161,7 @@ async function refresh_all() {
     await refresh_sessions();
     await refresh_transactions();
 }
+
 
 async function init() {
     const result = await fetch(base_url + "/api/v1/auth/session_info");
