@@ -61,7 +61,7 @@ def create_world(
 
 
 def check_world_ownership(world_id, session_id, is_admin):
-    true_uid = r_sessions.hget(session_id, "user_id")
+    true_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
 
     with Session(sql_engine) as ses:
         stmt = select(WorldsSchemaDB).where(WorldsSchemaDB.world_id==world_id)

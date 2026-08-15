@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/v1/admin")
 def check_admin(
     session_id: Annotated[str, Depends(get_or_create_session)]
 ):
-    user_id = r_sessions.hget(session_id, "user_id")
+    user_id = r_sessions.hget(f"ses_{session_id}", "user_id")
 
     ex = HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -49,7 +49,10 @@ def kill_session(
             detail = "only for admins"
         )
 
-    cnt = r_sessions.delete(session_id)
+    uinfo = r_sessions.hgetall(f"ses_{session_id}")
+    r_sessions.lrem(f"user_{uinfo["user_id"]}", 0, session_id)
+
+    cnt = r_sessions.delete(f"ses_{session_id}")
 
     return {"log" : f"cancelled {cnt} sessions"}
 
@@ -63,10 +66,10 @@ def get_sessions(is_admin: Annotated[bool, Depends(check_admin)]):
             detail = "only for admins"
         )
 
-    _, keys = r_sessions.scan(0, "*")
+    _, keys = r_sessions.scan(0, "ses_*")
     res = []
     for k in keys:
-        res.append({"session_id":k, "user_data":r_sessions.hgetall(k)})
+        res.append({ "session_id":k[4:], "user_data":r_sessions.hgetall(k) })
     return res
 
 
@@ -78,7 +81,7 @@ def post_generate_world(
     seed: int | None = None
 ):
 
-    true_uid = r_sessions.hget(session_id, "user_id")
+    true_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
 
     if (str(user_id) != true_uid) and (not is_admin):
         raise HTTPException(

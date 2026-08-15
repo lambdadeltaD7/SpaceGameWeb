@@ -28,7 +28,7 @@ def get_transactions(
             detail="only admins can view all transactions"
         )
     
-    requester_uid = r_sessions.hget(session_id, "user_id")
+    requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
 
     if (user_id is not None) and (not is_admin) and (requester_uid != str(user_id)):
         raise HTTPException(
@@ -80,7 +80,7 @@ def create_transaction(
     transaction: TransactionsSchemaPD
 ):
 
-    requester_uid = r_sessions.hget(session_id, "user_id")
+    requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
 
     if (not is_admin) and (requester_uid != str(transaction.user_from_id)):
         raise HTTPException(

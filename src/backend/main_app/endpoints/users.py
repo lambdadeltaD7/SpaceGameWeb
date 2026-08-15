@@ -57,6 +57,19 @@ def create_user(
     return user_obj
 
 
+
+def kill_user_sessions(user_id: int) -> int:
+    
+    sessions = r_sessions.lrange(f"user_{user_id}", 0, -1)
+
+    for ses_id in sessions:
+        r_sessions.delete(f"ses_{ses_id}")
+
+    r_sessions.delete(f"user_{user_id}")
+
+    return len(sessions)
+
+
 @router.patch("/{user_id}")
 def edit_user(
     check: Annotated[bool, Depends(check_admin)],
@@ -84,6 +97,8 @@ def edit_user(
         ses.execute(stmt)
         ses.commit()
     
+    kill_user_sessions(user_id)
+
     return 201
 
 
@@ -103,6 +118,9 @@ def delete_user(
         stmt = delete(UsersSchemaDB).where(UsersSchemaDB.user_id==user_id)
         result = ses.execute(stmt)
         ses.commit()
-    return {"log": f"deleted {result.rowcount} rows"}
+
+    cnt_ses = kill_user_sessions(user_id)
+
+    return {"log": f"deleted {result.rowcount} users, cancelled {cnt_ses} sessions"}
 
 

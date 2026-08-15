@@ -61,7 +61,7 @@ def create_planet(
 
 
 def check_planet_ownership(planet_id, session_id, is_admin):
-    true_uid = r_sessions.hget(session_id, "user_id")
+    true_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
 
     with Session(sql_engine) as ses:
         stmt = select(PlanetsSchemaDB).where(PlanetsSchemaDB.planet_id==planet_id)

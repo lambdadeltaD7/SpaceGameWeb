@@ -102,6 +102,7 @@ async function refresh_users(){
                 }
             );
             await refresh_users();
+            await refresh_sessions();
         });
         usr_card.append(change_is_admin_btn);
 

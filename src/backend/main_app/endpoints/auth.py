@@ -21,7 +21,7 @@ COOKIE_SESSION_ID_KEY = "my_session_id"
 def create_session():
     session_id = uuid.uuid4().hex
     r_sessions.hset(
-        session_id,
+        f"ses_{session_id}",
         mapping={
             "user_id": "",
             "username" : "",
@@ -46,7 +46,7 @@ def get_or_create_session(request: Request, response: Response):
         )
 
     else:
-        _, result = r_sessions.scan(cursor=0, match=session_id)
+        _, result = r_sessions.scan(cursor=0, match=f"ses_{session_id}")
         if len(result) == 0:
             raise HTTPException(
                 status_code=status.HTTP_406_NOT_ACCEPTABLE,
@@ -58,7 +58,7 @@ def get_or_create_session(request: Request, response: Response):
 
 @router.get("/online_info")
 def online_info():
-    _, keys = r_sessions.scan(0, "*")
+    _, keys = r_sessions.scan(0, "ses_*")
     logged_cnt = 0
     online_cnt = 0
     for k in keys:
@@ -73,9 +73,9 @@ def online_info():
 @router.get("/session_info")
 def session_info(session_id: Annotated[str, Depends(get_or_create_session)]):
     try:
-        uname = r_sessions.hget(session_id, "username")
-        uid = r_sessions.hget(session_id, "user_id")
-        is_admin = r_sessions.hget(session_id, "is_admin")
+        uname = r_sessions.hget(f"ses_{session_id}", "username")
+        uid = r_sessions.hget(f"ses_{session_id}", "user_id")
+        is_admin = r_sessions.hget(f"ses_{session_id}", "is_admin")
         if uname == "":
             return {
                 "msg":f"(anonimous session) with {session_id=}",
@@ -123,11 +123,13 @@ def registration(
         ses.refresh(user_obj)
 
 
-    r_sessions.delete(old_session_id)
+    r_sessions.delete(f"ses_{old_session_id}")
 
     new_session_id = create_session()
-    r_sessions.hset(new_session_id, "username", user_obj.user_name)
-    r_sessions.hset(new_session_id, "user_id", user_obj.user_id)
+    r_sessions.hset(f"ses_{new_session_id}", "username", user_obj.user_name)
+    r_sessions.hset(f"ses_{new_session_id}", "user_id", user_obj.user_id)
+
+    r_sessions.rpush(f"user_{user_obj.user_id}", new_session_id)
 
     response.set_cookie(
         key=COOKIE_SESSION_ID_KEY,
@@ -153,12 +155,14 @@ def login(
 
     if result and (result.user_password == user.user_password):
 
-        r_sessions.delete(old_session_id)
+        r_sessions.delete(f"ses_{old_session_id}")
 
         new_session_id = create_session()
-        r_sessions.hset(new_session_id, "username", user.user_name)
-        r_sessions.hset(new_session_id, "user_id", result.user_id)
-        r_sessions.hset(new_session_id, "is_admin", int(result.is_admin))
+        r_sessions.hset(f"ses_{new_session_id}", "username", user.user_name)
+        r_sessions.hset(f"ses_{new_session_id}", "user_id", result.user_id)
+        r_sessions.hset(f"ses_{new_session_id}", "is_admin", int(result.is_admin))
+
+        r_sessions.rpush(f"user_{result.user_id}", new_session_id)
 
         response.set_cookie(
             key=COOKIE_SESSION_ID_KEY,
@@ -184,7 +188,11 @@ def logout(
     response: Response,
     old_session_id: Annotated[str, Depends(get_or_create_session)],
 ):
-    r_sessions.delete(old_session_id)
+
+    uinfo = r_sessions.hgetall(f"ses_{old_session_id}")
+    r_sessions.lrem(f"user_{uinfo["user_id"]}", 0, old_session_id)
+    r_sessions.delete(f"ses_{old_session_id}")
+    
     new_session_id = create_session()
 
     response.set_cookie(
