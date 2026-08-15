@@ -39,6 +39,7 @@ class PlanetsSchemaPD(BaseModel):
     shield_on: bool
 
 
+
 class TransactionsSchemaPD(BaseModel):
     user_from_id: int
     user_to_id: int

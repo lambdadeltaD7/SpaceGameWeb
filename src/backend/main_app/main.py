@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from endpoints.auth import router as auth_router
 from endpoints.admin import router as admin_router
 from endpoints.planets import router as planets_router
@@ -7,7 +8,9 @@ from endpoints.worlds import router as worlds_router
 from endpoints.users import router as users_router
 from endpoints.transactions import router as transactions_router
 
+
 app = FastAPI()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +24,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 app.include_router(auth_router, tags=["auth"])
 app.include_router(admin_router, tags=["admin stuff"])

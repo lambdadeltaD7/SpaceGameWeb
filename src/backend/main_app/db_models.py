@@ -1,8 +1,11 @@
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import BigInteger
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+
 
 class Base(DeclarativeBase):
     pass
+
 
 
 class UsersSchemaDB(Base):
@@ -17,6 +20,7 @@ class UsersSchemaDB(Base):
     res2: Mapped[int]
 
 
+
 class WorldsSchemaDB(Base):
     __tablename__ = "worlds"
 
@@ -26,6 +30,7 @@ class WorldsSchemaDB(Base):
     w: Mapped[int]
     h: Mapped[int]
     is_public: Mapped[bool]
+
 
 
 class PlanetsSchemaDB(Base):
@@ -38,6 +43,7 @@ class PlanetsSchemaDB(Base):
     x: Mapped[int] 
     y: Mapped[int]
     shield_on: Mapped[bool]
+
 
 
 class TransactionsSchemaDB(Base):
