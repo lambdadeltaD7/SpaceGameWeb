@@ -36,10 +36,10 @@ def get_planet(planet_id: int):
 
     with Session(sql_engine) as ses:
         stmt = select(
-                PlanetsSchemaDB
-            ).where(
-                PlanetsSchemaDB.planet_id == planet_id
-            )
+                    PlanetsSchemaDB
+                ).where(
+                    PlanetsSchemaDB.planet_id == planet_id
+                )
 
         planet = ses.scalar(stmt)
 
@@ -83,20 +83,20 @@ def check_planet_ownership(
 
     with Session(sql_engine) as ses:
         stmt = select(
-                PlanetsSchemaDB
-            ).where(
-                PlanetsSchemaDB.planet_id == planet_id
-            )
+                    PlanetsSchemaDB
+                ).where(
+                    PlanetsSchemaDB.planet_id == planet_id
+                )
 
         planet = ses.scalar(stmt)
     
         if planet:
             world_id = planet.world_id
             stmt = select(
-                    WorldsSchemaDB
-                ).where(
-                    WorldsSchemaDB.world_id == world_id
-                )
+                        WorldsSchemaDB
+                    ).where(
+                        WorldsSchemaDB.world_id == world_id
+                    )
             world = ses.scalar(stmt)
 
             if (str(world.user_id) != requester_uid) and (not is_admin):
@@ -160,10 +160,10 @@ def delete_planet(
 
     with Session(sql_engine) as ses:
         stmt = delete(
-                PlanetsSchemaDB
-            ).where(
-                PlanetsSchemaDB.planet_id == planet_id
-            )
+                    PlanetsSchemaDB
+                ).where(
+                    PlanetsSchemaDB.planet_id == planet_id
+                )
         result = ses.execute(stmt)
         ses.commit()
 

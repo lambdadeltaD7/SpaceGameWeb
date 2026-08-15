@@ -63,10 +63,10 @@ def get_transaction(
 
     with Session(sql_engine) as ses:
         stmt = select(
-                TransactionsSchemaDB
-            ).where(
-                TransactionsSchemaDB.transaction_id == transaction_id
-            )
+                    TransactionsSchemaDB
+                ).where(
+                    TransactionsSchemaDB.transaction_id == transaction_id
+                )
         transaction = ses.scalar(stmt)
 
     if transaction:
@@ -74,8 +74,8 @@ def get_transaction(
 
     else:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"there is no transaction with {transaction_id=}"
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = f"there is no transaction with {transaction_id=}"
         )
     
 
@@ -160,10 +160,10 @@ def delete_transaction(
         with Session(sql_engine) as ses:
             
             stmt = select(
-                    TransactionsSchemaDB
-                ).where(
-                    TransactionsSchemaDB.transaction_id == transaction_id
-                )
+                        TransactionsSchemaDB
+                    ).where(
+                        TransactionsSchemaDB.transaction_id == transaction_id
+                    )
             transaction = ses.scalar(stmt)
 
             update_user_balance(
@@ -181,10 +181,10 @@ def delete_transaction(
             )
 
             stmt = delete(
-                TransactionsSchemaDB
-            ).where(
-                TransactionsSchemaDB.transaction_id == transaction_id
-            )
+                    TransactionsSchemaDB
+                ).where(
+                    TransactionsSchemaDB.transaction_id == transaction_id
+                )
             result = ses.execute(stmt)
 
             ses.commit()

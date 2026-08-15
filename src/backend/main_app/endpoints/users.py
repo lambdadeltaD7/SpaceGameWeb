@@ -28,10 +28,10 @@ def get_user(user_id: int):
 
     with Session(sql_engine) as ses:
         stmt = select(
-                UsersSchemaDB
-            ).where(
-                UsersSchemaDB.user_id == user_id
-            )
+                    UsersSchemaDB
+                ).where(
+                    UsersSchemaDB.user_id == user_id
+                )
         user = ses.scalar(stmt)
 
     if user:
@@ -119,10 +119,10 @@ def delete_user(
 
     with Session(sql_engine) as ses:
         stmt = delete(
-                UsersSchemaDB
-            ).where(
-                UsersSchemaDB.user_id == user_id
-            )
+                    UsersSchemaDB
+                ).where(
+                    UsersSchemaDB.user_id == user_id
+                )
         result = ses.execute(stmt)
         ses.commit()
 

@@ -170,10 +170,10 @@ def login(
 ):
     with Session(sql_engine) as ses:
         stmt = select(
-                UsersSchemaDB
-            ).where(
-                UsersSchemaDB.user_name == user.user_name
-            )
+                    UsersSchemaDB
+                ).where(
+                    UsersSchemaDB.user_name == user.user_name
+                )
         user_obj = ses.scalar(stmt)
 
     if user_obj and (user_obj.user_password == user.user_password):
