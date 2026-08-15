@@ -167,14 +167,14 @@ def delete_transaction(
             transaction = ses.scalar(stmt)
 
             update_user_balance(
-                user_id    = user_from_id,
+                user_id    = transaction.user_from_id,
                 db_session = ses,
                 delta_res1 = transaction.res1,
                 delta_res2 = transaction.res2
             )
 
             update_user_balance(
-                user_id    = user_to_id,
+                user_id    = transaction.user_to_id,
                 db_session = ses,
                 delta_res1 = (-1) * transaction.res1,
                 delta_res2 = (-1) * transaction.res2
