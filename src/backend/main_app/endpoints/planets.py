@@ -1,5 +1,3 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-
 from typing import Annotated
 
 from sqlalchemy.orm import Session
@@ -7,36 +5,51 @@ from sqlalchemy import select, delete, text
 
 from endpoints.admin import check_admin
 from endpoints.auth import get_or_create_session
+from fastapi import APIRouter, HTTPException, status, Depends
 
 from pd_models import PlanetsSchemaPD
 from db_models import PlanetsSchemaDB, WorldsSchemaDB
 
 from db_connection import sql_engine, r_sessions
 
+
 router = APIRouter(prefix="/api/v1/planets")
 
 
 @router.get("/")
 def get_planets(world_id: int | None = None):
+
     with Session(sql_engine) as ses:
+
         stmt = select(PlanetsSchemaDB)
+        
         if world_id is not None:
-            stmt = stmt.where(PlanetsSchemaDB.world_id==world_id)
-        result = ses.scalars(stmt).all()
-    return [p for p in result]
+            stmt = stmt.where(PlanetsSchemaDB.world_id == world_id)
+
+        planets = ses.scalars(stmt).all()
+        
+    return [p for p in planets]
 
 
 @router.get("/{planet_id}")
 def get_planet(planet_id: int):
+
     with Session(sql_engine) as ses:
-        stmt = select(PlanetsSchemaDB).where(PlanetsSchemaDB.planet_id==planet_id)
-        result = ses.scalar(stmt)
-    if result:
-        return result
+        stmt = select(
+                PlanetsSchemaDB
+            ).where(
+                PlanetsSchemaDB.planet_id == planet_id
+            )
+
+        planet = ses.scalar(stmt)
+
+    if planet:
+        return planet
+
     else:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"there is no planet with {planet_id=}"
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = f"there is no planet with {planet_id=}"
         )
 
 
@@ -48,7 +61,7 @@ def create_planet(
 
     if not is_admin:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code = status.HTTP_401_UNAUTHORIZED,
             detail = "only for admins"
         )
 
@@ -57,29 +70,43 @@ def create_planet(
         ses.add(planet_obj)
         ses.commit()
         ses.refresh(planet_obj)
+
     return planet_obj
 
 
-def check_planet_ownership(planet_id, session_id, is_admin):
-    true_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
+def check_planet_ownership(
+    planet_id: int,
+    session_id: str,
+    is_admin: bool
+):
+    requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
 
     with Session(sql_engine) as ses:
-        stmt = select(PlanetsSchemaDB).where(PlanetsSchemaDB.planet_id==planet_id)
+        stmt = select(
+                PlanetsSchemaDB
+            ).where(
+                PlanetsSchemaDB.planet_id == planet_id
+            )
+
         planet = ses.scalar(stmt)
     
         if planet:
             world_id = planet.world_id
-            stmt = select(WorldsSchemaDB).where(WorldsSchemaDB.world_id==world_id)
+            stmt = select(
+                    WorldsSchemaDB
+                ).where(
+                    WorldsSchemaDB.world_id == world_id
+                )
             world = ses.scalar(stmt)
 
-            if (str(world.user_id) != true_uid) and (not is_admin):
+            if (str(world.user_id) != requester_uid) and (not is_admin):
                 raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    status_code = status.HTTP_401_UNAUTHORIZED,
                     detail = "you must ba an owner or admin to do this"
                 )
         else:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code = status.HTTP_404_NOT_FOUND,
                 detail = f"there is no planet with {planet_id=}" 
             )
 
@@ -116,6 +143,7 @@ def edit_planet(
                 WHERE planet_id = {planet_id}
             """)
             ses.execute(stmt)
+
         ses.commit()
     
     return 201
@@ -131,9 +159,14 @@ def delete_planet(
     check_planet_ownership(planet_id, session_id, is_admin)
 
     with Session(sql_engine) as ses:
-        stmt = delete(PlanetsSchemaDB).where(PlanetsSchemaDB.planet_id==planet_id)
+        stmt = delete(
+                PlanetsSchemaDB
+            ).where(
+                PlanetsSchemaDB.planet_id == planet_id
+            )
         result = ses.execute(stmt)
         ses.commit()
+
     return {"log": f"deleted {result.rowcount} rows"}
 
 
