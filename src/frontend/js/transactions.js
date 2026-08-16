@@ -1,3 +1,10 @@
+import {
+    showToast,
+    showErr,
+    show_latest_transactions,
+    base_url
+} from "./utils.js"
+
 const balance_info_txt = document.getElementById('balance_info_txt');
 
 const user_to_id_input = document.getElementById('user_to_id_input');
@@ -9,7 +16,6 @@ const reload_transactions_btn = document.getElementById('reload_transactions_btn
 const transactions_list = document.getElementById('transactions_list');
 
 
-const base_url = "http://localhost:8004";
 var user_id = null;
 
 
@@ -77,3 +83,5 @@ transaction_btn.addEventListener('click', async () => {
 
 
 queueMicrotask(async () => {await init();});
+
+setInterval(async () => {await show_latest_transactions();}, 5000);

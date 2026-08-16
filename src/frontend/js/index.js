@@ -1,3 +1,10 @@
+import {
+    showToast,
+    showErr,
+    show_latest_transactions,
+    base_url
+} from "./utils.js"
+
 const login_button = document.getElementById('login_button');
 const register_button = document.getElementById('register_button');
 const logout_button = document.getElementById('logout_button');
@@ -12,7 +19,6 @@ const world_seed_input = document.getElementById('world_seed_input');
 const world_gen_btn = document.getElementById('world_gen_btn');
 
 
-const base_url = "http://localhost:8004" 
 const ONLINE_INFO_UPDATE_FREQ = 3000;
 var user_id = null;
 
@@ -98,4 +104,6 @@ goto_transactions_btn.addEventListener('click', () => {
 
 queueMicrotask( async() => {await init();});
 queueMicrotask( async() => {await update_online_info();});
-setInterval(update_online_info, ONLINE_INFO_UPDATE_FREQ);
+
+setInterval(async () => {await update_online_info();}, ONLINE_INFO_UPDATE_FREQ);
+setInterval(async () => {await show_latest_transactions();}, 5000);

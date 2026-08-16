@@ -55,6 +55,21 @@ def get_transactions(
     return [t for t in transactions]
 
 
+@router.get("/latest_incoming")
+def flush_redis_user_transactions(
+    session_id: Annotated[str, Depends(get_or_create_session)],
+):
+    requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")    
+    key = f"incom_trans_user_{requester_uid}"
+    transactions_summary = r_sessions.hgetall(key)
+
+    r_sessions.delete(key)
+    if transactions_summary:
+        return transactions_summary
+    else:
+        return {"cnt" : "0"}
+
+
 @router.get("/{transaction_id}")
 def get_transaction(
     is_admin: Annotated[bool, Depends(check_admin)],
@@ -102,6 +117,25 @@ def update_user_balance(
     db_session.execute(stmt)
 
 
+
+def transaction2redis(transaction: TransactionsSchemaPD):
+    r_sessions.hincrby(
+        f"incom_trans_user_{transaction.user_to_id}",
+        "cnt",
+        1
+    )
+    r_sessions.hincrby(
+        f"incom_trans_user_{transaction.user_to_id}",
+        "res1_total",
+        transaction.res1
+    )
+    r_sessions.hincrby(
+        f"incom_trans_user_{transaction.user_to_id}",
+        "res2_total",
+        transaction.res2
+    )
+
+
 @router.post("/")
 def create_transaction(
     is_admin: Annotated[bool, Depends(check_admin)],
@@ -145,6 +179,8 @@ def create_transaction(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = f"can't create transaction: {ex}"    
         )
+
+    transaction2redis(transaction)
 
     return transaction_obj
 

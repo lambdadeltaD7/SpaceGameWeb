@@ -1,7 +1,13 @@
+import {
+    showToast,
+    showErr,
+    show_latest_transactions,
+    base_url
+} from "./utils.js"
+
 const worlds_list = document.getElementById('worlds_list');
 const reload_worlds_btn = document.getElementById('reload_worlds_btn');
 
-const base_url = "http://localhost:8004" 
 let user_id = null;
 let is_admin = false;
 
@@ -136,7 +142,7 @@ async function render_worlds(){
 
 reload_worlds_btn.addEventListener('click', async () => { await render_worlds(); });
 
-queueMicrotask(async ()=>{await init();});
-queueMicrotask(async ()=>{await render_worlds();});
+queueMicrotask(async () => {await init();});
+queueMicrotask(async () => {await render_worlds();});
 
-
+setInterval(async () => {await show_latest_transactions();}, 5000);

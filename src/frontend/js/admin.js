@@ -1,9 +1,14 @@
+import {
+    showToast,
+    showErr,
+    show_latest_transactions,
+    base_url
+} from "./utils.js"
+
 const sessions_list = document.getElementById('sessions_list');
 const users_list = document.getElementById('users_list');
 const transactions_list = document.getElementById('transactions_list');
 
-
-const base_url = "http://localhost:8004";
 
 
 function clear_all(){
@@ -178,3 +183,5 @@ async function init() {
 
 
 queueMicrotask(async () => {await init();});
+
+setInterval(async () => {await show_latest_transactions();}, 5000);

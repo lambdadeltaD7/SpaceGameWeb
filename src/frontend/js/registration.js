@@ -1,3 +1,10 @@
+import {
+    showToast,
+    showErr,
+    show_latest_transactions,
+    base_url
+} from "./utils.js"
+
 const username_input = document.getElementById('username_input');
 const password_input = document.getElementById('password_input');
 const email_input = document.getElementById('email_input');
@@ -5,7 +12,6 @@ const register_btn = document.getElementById('register_btn');
 const status_text = document.getElementById('status_text');
 
 
-const base_url = "http://localhost:8004" 
 
 
 async function init(){
@@ -51,3 +57,5 @@ register_btn.addEventListener('click', async () => {
 
 
 queueMicrotask(async () => {await init();});
+
+setInterval(async () => {await show_latest_transactions();}, 5000);

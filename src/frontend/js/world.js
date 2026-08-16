@@ -1,3 +1,10 @@
+import {
+    showToast,
+    showErr,
+    show_latest_transactions,
+    base_url
+} from "./utils.js"
+
 const status_bar = document.getElementById('status_bar');
 const world_info_txt = document.getElementById('world_info_txt');
 
@@ -10,32 +17,10 @@ const shield_dialog_btn_ok = document.getElementById('shield_dialog_btn_ok');
 const shield_dialog_btn_cancel = document.getElementById('shield_dialog_btn_cancel');
 
 
-const base_url = "http://localhost:8004" 
 var world_id = null;
 var planet_info_card_id = null;
 var old_status_text = null;
 
-
-function showErr(txt){
-    Swal.fire({
-            icon: 'error',
-            title: 'Input error',
-            text: txt,
-            });
-}
-
-
-function showToast(txt){
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: txt,
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true
-        });
-}
 
 
 async function init() {
@@ -129,7 +114,7 @@ async function render_world(world_info, planets) {
         curr_row.style = "display: flex; flex-direction: row";
 
         for(var j=0; j<w; ++j){
-            curr_cell = render_cell(grid, p_dict, i, j);
+            var curr_cell = render_cell(grid, p_dict, i, j);
             curr_row.append(curr_cell);
         }
 
@@ -227,3 +212,5 @@ async function on_mouse_click_planet(planet_info){
 
 
 queueMicrotask(async () => {await init();});
+
+setInterval(async () => {await show_latest_transactions();}, 5000);
