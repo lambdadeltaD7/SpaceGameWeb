@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, text
 
 from endpoints.admin import check_admin
+from endpoints.auth import get_or_create_session
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from pd_models import UsersSchemaPD
@@ -17,9 +18,16 @@ router = APIRouter(prefix="/api/v1/users")
 
 @router.get("/")
 def get_users(
+    is_admin: Annotated[bool, Depends(check_admin)],
     limit:  int | None = Query(default=67, ge=0, le=67),
     offset: int | None = Query(default=0,  ge=0)
-):
+):  
+    if not is_admin:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "only for admins"
+        )
+
     with Session(sql_engine) as ses:
         stmt = select(UsersSchemaDB).limit(limit).offset(offset)
         users = ses.scalars(stmt).all()
@@ -27,7 +35,18 @@ def get_users(
 
 
 @router.get("/{user_id}")
-def get_user(user_id: int):
+def get_user(
+    is_admin: Annotated[bool, Depends(check_admin)],
+    session_id: Annotated[str, Depends(get_or_create_session)],
+    user_id: int
+):
+    requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
+
+    if (not is_admin) and (requester_uid != str(user_id)):
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "you can view only your own transactions"
+        )
 
     with Session(sql_engine) as ses:
         stmt = select(

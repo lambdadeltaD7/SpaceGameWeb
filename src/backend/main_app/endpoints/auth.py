@@ -1,5 +1,6 @@
 import uuid
 from typing import Annotated
+import bcrypt
 
 from fastapi import (
     APIRouter, Request, Response,
@@ -123,11 +124,8 @@ def registration(
 ):
 
     with Session(sql_engine) as ses:
-        user_obj = UsersSchemaDB(**dict(user))
-        user_obj.is_admin = False
-        user_obj.res1 = 100
-        user_obj.res2 = 100
-        ses.add(user_obj)
+        user_db_obj = UsersSchemaDB(**dict(user))
+        ses.add(user_db_obj)
 
         try:
             ses.commit()
@@ -139,16 +137,16 @@ def registration(
                 detail = "this username is already taken"
             )
 
-        ses.refresh(user_obj)
+        ses.refresh(user_db_obj)
 
 
     r_sessions.delete(f"ses_{old_session_id}")
 
     new_session_id = create_session()
-    r_sessions.hset(f"ses_{new_session_id}", "username", user_obj.user_name)
-    r_sessions.hset(f"ses_{new_session_id}", "user_id", user_obj.user_id)
+    r_sessions.hset(f"ses_{new_session_id}", "username", user_db_obj.user_name)
+    r_sessions.hset(f"ses_{new_session_id}", "user_id", user_db_obj.user_id)
 
-    r_sessions.rpush(f"user_{user_obj.user_id}", new_session_id)
+    r_sessions.rpush(f"user_{user_db_obj.user_id}", new_session_id)
 
     response.set_cookie(
         key = COOKIE_SESSION_ID_KEY,
@@ -174,18 +172,22 @@ def login(
                 ).where(
                     UsersSchemaDB.user_name == user.user_name
                 )
-        user_obj = ses.scalar(stmt)
+        user_db_obj = ses.scalar(stmt)
 
-    if user_obj and (user_obj.user_password == user.user_password):
+
+    if user_db_obj and bcrypt.checkpw(
+                                user.user_password.encode("utf-8"),
+                                user_db_obj.pass_salted_hashed.encode("utf-8")
+                            ):
 
         r_sessions.delete(f"ses_{old_session_id}")
 
         new_session_id = create_session()
         r_sessions.hset(f"ses_{new_session_id}", "username", user.user_name)
-        r_sessions.hset(f"ses_{new_session_id}", "user_id", user_obj.user_id)
-        r_sessions.hset(f"ses_{new_session_id}", "is_admin", int(user_obj.is_admin))
+        r_sessions.hset(f"ses_{new_session_id}", "user_id", user_db_obj.user_id)
+        r_sessions.hset(f"ses_{new_session_id}", "is_admin", int(user_db_obj.is_admin))
 
-        r_sessions.rpush(f"user_{user_obj.user_id}", new_session_id)
+        r_sessions.rpush(f"user_{user_db_obj.user_id}", new_session_id)
 
         response.set_cookie(
             key = COOKIE_SESSION_ID_KEY,

@@ -1,6 +1,6 @@
 from sqlalchemy import BigInteger
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-
+import bcrypt
 
 
 class Base(DeclarativeBase):
@@ -15,9 +15,27 @@ class UsersSchemaDB(Base):
     user_name: Mapped[str]
     user_email: Mapped[str] 
     user_password: Mapped[str]
+    pass_salted_hashed: Mapped[str]
     is_admin: Mapped[bool]
     res1: Mapped[int]
     res2: Mapped[int]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        password = kwargs["user_password"]
+
+        self.is_admin = False
+        self.res1 = 100
+        self.res2 = 100
+
+        salt = bcrypt.gensalt()
+        self.pass_salted_hashed = str(
+            bcrypt.hashpw(
+                password = password.encode("utf-8"),
+                salt = salt
+            )
+        )[2:-1]
 
 
 

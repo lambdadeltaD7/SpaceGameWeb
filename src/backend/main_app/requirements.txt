@@ -4,6 +4,7 @@ uuid
 typing
 sqlalchemy
 redis
+bcrypt
 pydantic
 pydantic[email]
 psycopg[binary]
