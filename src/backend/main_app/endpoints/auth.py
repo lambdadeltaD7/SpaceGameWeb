@@ -145,6 +145,7 @@ def registration(
     new_session_id = create_session()
     r_sessions.hset(f"ses_{new_session_id}", "username", user_db_obj.user_name)
     r_sessions.hset(f"ses_{new_session_id}", "user_id", user_db_obj.user_id)
+    r_sessions.hset(f"ses_{new_session_id}", "is_admin", user_db_obj.is_admin)
 
     r_sessions.rpush(f"user_{user_db_obj.user_id}", new_session_id)
 
