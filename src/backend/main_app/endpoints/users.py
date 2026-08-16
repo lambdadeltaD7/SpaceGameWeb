@@ -8,7 +8,7 @@ from endpoints.auth import get_or_create_session
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from pd_models import UsersSchemaPD
-from db_models import UsersSchemaDB
+from db_models import UsersSchemaDB, WorldsSchemaDB, PlanetsSchemaDB
 
 from db_connection import sql_engine, r_sessions
 
@@ -140,16 +140,42 @@ def delete_user(
         )
 
     with Session(sql_engine) as ses:
+
+        subq = select(
+                    WorldsSchemaDB.world_id
+                ).where(
+                    WorldsSchemaDB.user_id == user_id
+                ).subquery()
+        stmt = delete(
+                    PlanetsSchemaDB
+                ).where(
+                    PlanetsSchemaDB.world_id.in_(subq)
+                )
+        plt_res = ses.execute(stmt)
+
+        stmt = delete(
+                    WorldsSchemaDB
+                ).where(
+                    WorldsSchemaDB.user_id == user_id
+                )
+        wrld_res = ses.execute(stmt)
+
         stmt = delete(
                     UsersSchemaDB
                 ).where(
                     UsersSchemaDB.user_id == user_id
                 )
-        result = ses.execute(stmt)
+        usr_res = ses.execute(stmt)
+
         ses.commit()
 
     cnt_ses = kill_user_sessions(user_id)
 
-    return {"log": f"deleted {result.rowcount} users, cancelled {cnt_ses} sessions"}
+    return {
+        "killed sessions" : cnt_ses,
+        "deleted users"   : usr_res.rowcount,
+        "deleted planets" : plt_res.rowcount,
+        "deleted worlds"  : wrld_res.rowcount,
+    }
 
 
