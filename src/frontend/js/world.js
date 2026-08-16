@@ -26,7 +26,6 @@ var old_status_text = null;
 async function init() {
     world_id = await cookieStore.get('world_id');
     world_id = world_id.value;
-    console.log(`world_id is ${world_id}`);
 
     const world_info = await get_world_info();
 
@@ -46,7 +45,6 @@ async function init() {
 
 
 function on_mouse_enter_planet(planet_info){
-    console.log(planet_info);
     world_info_txt.textContent = `
         planet_id = ${planet_info.planet_id},
         res1 = ${planet_info.res1},

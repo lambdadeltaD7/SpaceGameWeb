@@ -24,9 +24,6 @@ async function init(){
 
 
 login_btn.addEventListener('click', async () => {
-
-    console.log("click");
-
     const user_obj = {
         "user_name" : username_input.value,
         "user_password" : password_input.value
