@@ -7,7 +7,7 @@ from sqlalchemy import select, or_, text, update, delete
 
 from endpoints.admin import check_admin
 from endpoints.auth import get_or_create_session
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from pd_models import TransactionsSchemaPD
 from db_models import TransactionsSchemaDB, UsersSchemaDB
@@ -20,7 +20,9 @@ router = APIRouter(prefix="/api/v1/transactions")
 def get_transactions(
     is_admin: Annotated[bool, Depends(check_admin)],
     session_id: Annotated[str, Depends(get_or_create_session)],
-    user_id: int | None = None
+    user_id: int | None = None,
+    limit:   int | None = Query(default=67, ge=0, le=67),
+    offset:  int | None = Query(default=0,  ge=0)
 ):
     if (user_id is None) and (not is_admin):
         raise HTTPException(
@@ -45,6 +47,9 @@ def get_transactions(
                     TransactionsSchemaDB.user_to_id == user_id
                 )
             )
+        
+        stmt = stmt.limit(limit).offset(offset)
+
         transactions = ses.scalars(stmt).all()
 
     return [t for t in transactions]

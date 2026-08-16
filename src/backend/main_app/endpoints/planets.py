@@ -5,7 +5,7 @@ from sqlalchemy import select, delete, text
 
 from endpoints.admin import check_admin
 from endpoints.auth import get_or_create_session
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from pd_models import PlanetsSchemaPD
 from db_models import PlanetsSchemaDB, WorldsSchemaDB
@@ -17,7 +17,11 @@ router = APIRouter(prefix="/api/v1/planets")
 
 
 @router.get("/")
-def get_planets(world_id: int | None = None):
+def get_planets(
+    world_id: int | None = None,
+    limit:    int | None = Query(default=67, ge=0, le=67),
+    offset:   int | None = Query(default=0,  ge=0)
+):
 
     with Session(sql_engine) as ses:
 
@@ -25,6 +29,8 @@ def get_planets(world_id: int | None = None):
         
         if world_id is not None:
             stmt = stmt.where(PlanetsSchemaDB.world_id == world_id)
+
+        stmt = stmt.limit(limit).offset(offset)
 
         planets = ses.scalars(stmt).all()
         

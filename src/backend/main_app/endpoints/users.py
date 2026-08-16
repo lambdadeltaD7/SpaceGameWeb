@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, text
 
 from endpoints.admin import check_admin
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from pd_models import UsersSchemaPD
 from db_models import UsersSchemaDB
@@ -16,9 +16,12 @@ router = APIRouter(prefix="/api/v1/users")
 
 
 @router.get("/")
-def get_users():
+def get_users(
+    limit:  int | None = Query(default=67, ge=0, le=67),
+    offset: int | None = Query(default=0,  ge=0)
+):
     with Session(sql_engine) as ses:
-        stmt = select(UsersSchemaDB)
+        stmt = select(UsersSchemaDB).limit(limit).offset(offset)
         users = ses.scalars(stmt).all()
     return [u for u in users]
 
