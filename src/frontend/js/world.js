@@ -212,3 +212,4 @@ async function on_mouse_click_planet(planet_info){
 queueMicrotask(async () => {await init();});
 
 setInterval(async () => {await show_latest_transactions();}, 5000);
+setInterval(async () => {await init();}, 670);
