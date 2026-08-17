@@ -1,31 +1,16 @@
 import logging
-from celery import Celery
-
+from celery import shared_task
 from sqlalchemy import update 
 from sqlalchemy.orm import Session 
 
-from db_connection import sql_engine, r_game
+from db_connection import sql_engine, r_game, r_sessions
 from db_models import PlanetsSchemaDB, WorldsSchemaDB
-
 
 
 logger = logging.getLogger(__name__)
 
-app = Celery('tasks', broker='redis://redis_cluster:6379/3',)
 
-FLUSH_REDIS_WORLD_STATE_INTERVAL = 30.0
-
-@app.on_after_configure.connect
-def setup_periodic_tasks(sender: Celery, **kwargs):
-
-    sender.add_periodic_task(
-        FLUSH_REDIS_WORLD_STATE_INTERVAL,
-        flush_redis_worlds_state,
-        name='flush_redis_worlds_state'
-    )
-
-
-@app.task
+@shared_task
 def flush_redis_worlds_state():
     _, keys = r_game.scan(0, "world_*")
     
@@ -41,7 +26,7 @@ def flush_redis_worlds_state():
             logger.info(f"{world_data=}")
 
             if "planets" in world_data.keys():
-                logger.info("we have planets")
+                logger.info("we have some planets")
                 for _, p in world_data["planets"].items():
                     stmt = update(
                         PlanetsSchemaDB
@@ -54,18 +39,27 @@ def flush_redis_worlds_state():
                     )
                     ses.execute(stmt)
 
-            # if "is_public" in world_data.keys():
-            #     logger.info("we have is_public")
-            #     stmt = update(
-            #             WorldsSchemaDB
-            #         ).where(
-            #             # k = f"world_{world_id}"
-            #             WorldsSchemaDB.world_id == int(k[k.index("_") + 1 : ])
-            #         ).values(
-            #             is_public = ( world_data["is_public"] == "True" )
-            #         )
-            #     ses.execute(stmt)
-
             r_game.delete(k)
             ses.commit()
 
+
+@shared_task
+def update_online_info():
+    _, keys = r_sessions.scan(0, "ses_*")
+    logged_cnt = 0
+    online_cnt = 0
+
+    for k in keys:
+        user_data = r_sessions.hgetall(k)
+        online_cnt += 1
+        if user_data["user_id"] != "":
+            logged_cnt += 1
+            
+    r_sessions.json().set(
+        "online_info",
+        "$",
+        {
+            "online_cnt" : online_cnt,
+            "logged_cnt" : logged_cnt
+        }
+    )

@@ -32,7 +32,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
       - main_app
-    command: ["celery", "-A", "tasks", "worker", "--loglevel=info", "--pool=solo"]
+    command: ["celery", "-A", "celery_app", "worker", "--loglevel=info", "--pool=solo"]
 
   celery_beat:
     build: ./src/backend/celery
@@ -42,7 +42,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
       - main_app
-    command: ["celery", "-A", "tasks", "beat", "--loglevel=info"]
+    command: ["celery", "-A", "celery_app", "beat", "--loglevel=info"]
 
   nginx_app:
     build: ./src/backend/nginx_app

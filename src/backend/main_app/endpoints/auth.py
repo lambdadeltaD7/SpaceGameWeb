@@ -71,6 +71,11 @@ def get_or_create_session(
 
 @router.get("/online_info")
 def online_info():
+
+    cached_online_info = r_sessions.json().get("online_info")
+    if cached_online_info:
+        return {k : int(v) for k,v in cached_online_info.items()}
+
     _, keys = r_sessions.scan(0, "ses_*")
     logged_cnt = 0
     online_cnt = 0

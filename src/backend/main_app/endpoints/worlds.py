@@ -117,13 +117,6 @@ def edit_world(
 
     check_world_ownership(world_id, session_id, is_admin)
 
-    # if r_game.json().get(f"world_{world_id}") is not None:
-    #     r_game.json().set(
-    #         f"world_{world_id}",
-    #         "$.is_public",
-    #         str(is_public)
-    #     )
-    #     return {"log": "updated in cache"}
 
     with Session(sql_engine) as ses:
         stmt = text(f"""
@@ -135,12 +128,6 @@ def edit_world(
         ses.execute(stmt)
         ses.commit()
     
-    # r_game.json().set(
-    #     f"world_{world_id}",
-    #     "$",
-    #     {"is_public" : str(is_public)}
-    # )
-
     return 201
 
 

@@ -140,7 +140,8 @@ def delete_user(
         )
 
     with Session(sql_engine) as ses:
-
+        
+        # n + 1 ?
         subq = select(
                     WorldsSchemaDB.world_id
                 ).where(
