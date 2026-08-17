@@ -42,7 +42,7 @@ def flush_redis_worlds_state():
 
             if "planets" in world_data.keys():
                 logger.info("we have planets")
-                for _, p in world_data["planets"][0].items():
+                for _, p in world_data["planets"].items():
                     stmt = update(
                         PlanetsSchemaDB
                     ).where(
@@ -54,17 +54,17 @@ def flush_redis_worlds_state():
                     )
                     ses.execute(stmt)
 
-            if "is_public" in world_data.keys():
-                logger.info("we have is_public")
-                stmt = update(
-                        WorldsSchemaDB
-                    ).where(
-                        # k = f"world_{world_id}"
-                        WorldsSchemaDB.world_id == int(k[k.index("_") + 1 : ])
-                    ).values(
-                        is_public = ( world_data["is_public"] == "True" )
-                    )
-                ses.execute(stmt)
+            # if "is_public" in world_data.keys():
+            #     logger.info("we have is_public")
+            #     stmt = update(
+            #             WorldsSchemaDB
+            #         ).where(
+            #             # k = f"world_{world_id}"
+            #             WorldsSchemaDB.world_id == int(k[k.index("_") + 1 : ])
+            #         ).values(
+            #             is_public = ( world_data["is_public"] == "True" )
+            #         )
+            #     ses.execute(stmt)
 
             r_game.delete(k)
             ses.commit()

@@ -24,7 +24,7 @@ services:
       - postgres_cluster
       - redis_cluster
 
-  celery_cluster:
+  celery_worker:
     build: ./src/backend/celery
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -32,6 +32,17 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
       - main_app
+    command: ["celery", "-A", "tasks", "worker", "--loglevel=info", "--pool=solo"]
+
+  celery_beat:
+    build: ./src/backend/celery
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      - main_app
+    command: ["celery", "-A", "tasks", "beat", "--loglevel=info"]
 
   nginx_app:
     build: ./src/backend/nginx_app
@@ -44,6 +55,7 @@ services:
       - ./src/frontend/img:/usr/share/nginx/static/img:ro
     depends_on:
       - main_app
-      - celery_cluster
+      - celery_worker
+      - celery_beat
 
   
