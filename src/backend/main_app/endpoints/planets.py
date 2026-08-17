@@ -181,49 +181,30 @@ def edit_planet(
     
     planet = check_planet_ownership(planet_id, session_id, is_admin)
 
+    pairs = [("shield_on",shield_on), ("res1",res1), ("res2",res2)]
+
+    # cache hit
     if r_game.json().get(f"world_{planet.world_id}", "$.planets"):
-        if shield_on is not None:
-            r_game.json().set(
-                f"world_{planet.world_id}",
-                f"$.planets.{planet.planet_id}.shield_on",
-                str(shield_on)
-            )
-
-        if res1 is not None:
-            r_game.json().set(
-                f"world_{planet.world_id}",
-                f"$.planets.{planet.planet_id}.res1",
-                str(res1)
-            )
-
-        if res2 is not None:
-            r_game.json().set(
-                f"world_{planet.world_id}",
-                f"$.planets.{planet.planet_id}.res2",
-                str(res2)
-            )
+        for k,v in pairs:
+            if v is not None:
+                r_game.json().set(
+                    f"world_{planet.world_id}",
+                    f"$.planets.{planet.planet_id}.{k}",
+                    str(v)
+                )
 
         return {"log": "updated in cache"}
 
-    changes = []
-
-    if res1 is not None:
-        changes.append(f"{res1=}\n")
-    if res2 is not None:
-        changes.append(f"{res2=}\n")
-    if shield_on is not None:
-        changes.append(f"{shield_on=}\n")
-
+    # cache miss
     with Session(sql_engine) as ses:
-        for ch in changes:
-            stmt = text(f"""
-                UPDATE planets
-                SET 
-                {ch}
-                WHERE planet_id = {planet_id}
-            """)
-            ses.execute(stmt)
-
+        for k,v in pairs:
+            if v is not None:
+                stmt = text(f"""
+                    UPDATE planets
+                    SET k={v}
+                    WHERE planet_id = {planet_id}
+                """)
+                ses.execute(stmt)
         ses.commit()
     
     return 201

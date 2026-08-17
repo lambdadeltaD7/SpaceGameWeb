@@ -1,13 +1,14 @@
+import logging
 from celery import Celery
-from db_connection import sql_engine, r_game
+
 from sqlalchemy import update 
 from sqlalchemy.orm import Session 
+
+from db_connection import sql_engine, r_game
 from db_models import PlanetsSchemaDB, WorldsSchemaDB
 
 
-import logging
 
-# Настраиваем логирование
 logger = logging.getLogger(__name__)
 
 app = Celery('tasks', broker='redis://redis_cluster:6379/3',)
@@ -16,7 +17,6 @@ FLUSH_REDIS_WORLD_STATE_INTERVAL = 30.0
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender: Celery, **kwargs):
-    # sender.add_periodic_task(3.0, test.s('hello1'), name='print every 3')
 
     sender.add_periodic_task(
         FLUSH_REDIS_WORLD_STATE_INTERVAL,
@@ -68,9 +68,4 @@ def flush_redis_worlds_state():
 
             r_game.delete(k)
             ses.commit()
-
-
-@app.task
-def test(arg):
-    print(arg)
 
