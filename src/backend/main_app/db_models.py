@@ -63,6 +63,18 @@ class PlanetsSchemaDB(Base):
     shield_on: Mapped[bool]
 
 
+    def to_dict(self, to_str=False):
+        return {
+            "planet_id": self.planet_id,
+            "world_id": self.world_id,
+            "res1": self.res1,
+            "res2": self.res2,
+            "x": self.x,
+            "y": self.y,
+            "shield_on" : self.shield_on if not to_str else str(self.shield_on)
+        }
+
+
 
 class TransactionsSchemaDB(Base):
     __tablename__ = "transactions"

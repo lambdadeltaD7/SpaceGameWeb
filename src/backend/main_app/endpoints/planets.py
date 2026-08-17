@@ -10,11 +10,29 @@ from fastapi import APIRouter, HTTPException, status, Depends, Query
 from pd_models import PlanetsSchemaPD
 from db_models import PlanetsSchemaDB, WorldsSchemaDB
 
-from db_connection import sql_engine, r_sessions
+from db_connection import sql_engine, r_sessions, r_game
 
 
 router = APIRouter(prefix="/api/v1/planets")
 
+def log_msg(txt):
+    print('#'*64)
+    print('#'*64)
+    print(txt)
+    print('#'*64)
+    print('#'*64)
+
+
+def planet_from_str(p):
+    return {
+        "planet_id": int(p["planet_id"]),
+        "world_id": int(p["world_id"]),
+        "res1": int(p["res1"]),
+        "res2": int(p["res2"]),
+        "x": int(p["x"]),
+        "y": int(p["y"]),
+        "shield_on": p["shield_on"] == "True"
+    }
 
 @router.get("/")
 def get_planets(
@@ -23,8 +41,16 @@ def get_planets(
     offset:   int | None = Query(default=0,  ge=0)
 ):
 
-    with Session(sql_engine) as ses:
+    # try to get from cache
+    if world_id is not None:
+        cached_planets = r_game.json().get(f"world_{world_id}", "$.planets")
+        if cached_planets:
+            log_msg("get_planets cache hit")
+            return [planet_from_str(p) for p_id,p in cached_planets[0].items()]
+        else:
+            log_msg("get_planets cache miss")
 
+    with Session(sql_engine) as ses:
         stmt = select(PlanetsSchemaDB)
         
         if world_id is not None:
@@ -33,7 +59,29 @@ def get_planets(
         stmt = stmt.limit(limit).offset(offset)
 
         planets = ses.scalars(stmt).all()
-        
+
+    # write to cache
+    if world_id is not None:
+        if r_game.json().get(f"world_{world_id}"):
+            r_game.json().set(
+                f"world_{world_id}",
+                "$.planets",
+                {}
+            )
+        else:
+            r_game.json().set(
+                f"world_{world_id}",
+                "$",
+                {"planets":{}}
+            )
+
+        for p in planets:
+            r_game.json().set(
+                    f"world_{world_id}",
+                    f"$.planets.{p.planet_id}",
+                    p.to_dict(to_str=True)
+                )
+
     return [p for p in planets]
 
 
@@ -116,6 +164,8 @@ def check_planet_ownership(
                 detail = f"there is no planet with {planet_id=}" 
             )
 
+    return planet
+
 
 @router.patch("/{planet_id}")
 def edit_planet(
@@ -129,7 +179,31 @@ def edit_planet(
     if (res1 is None) and (res2 is None) and (shield_on is None):
         return 200
     
-    check_planet_ownership(planet_id, session_id, is_admin)
+    planet = check_planet_ownership(planet_id, session_id, is_admin)
+
+    if r_game.json().get(f"world_{planet.world_id}", "$.planets"):
+        if shield_on is not None:
+            r_game.json().set(
+                f"world_{planet.world_id}",
+                f"$.planets.{planet.planet_id}.shield_on",
+                str(shield_on)
+            )
+
+        if res1 is not None:
+            r_game.json().set(
+                f"world_{planet.world_id}",
+                f"$.planets.{planet.planet_id}.res1",
+                str(res1)
+            )
+
+        if res2 is not None:
+            r_game.json().set(
+                f"world_{planet.world_id}",
+                f"$.planets.{planet.planet_id}.res2",
+                str(res2)
+            )
+
+        return {"log": "updated in cache"}
 
     changes = []
 
