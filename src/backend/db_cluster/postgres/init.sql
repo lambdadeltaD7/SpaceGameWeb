@@ -44,6 +44,15 @@ CREATE TABLE IF NOT EXISTS transactions(
 );
 
 
+CREATE TABLE IF NOT EXISTS miners(
+    miner_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    world_id INT,
+    user_id INT,
+    x INT CHECK(x >= 0),
+    y INT CHECK(y >= 0)
+);
+
+
 INSERT INTO 
 users (user_name, user_email, user_password, pass_salted_hashed, is_admin, res1, res2) 
 VALUES

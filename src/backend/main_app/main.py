@@ -7,7 +7,7 @@ from endpoints.planets import router as planets_router
 from endpoints.worlds import router as worlds_router
 from endpoints.users import router as users_router
 from endpoints.transactions import router as transactions_router
-
+from endpoints.miners import router as miners_router
 
 app = FastAPI()
 
@@ -32,6 +32,7 @@ app.include_router(planets_router, tags=["planets"])
 app.include_router(worlds_router, tags=["worlds"])
 app.include_router(users_router, tags=["users"])
 app.include_router(transactions_router, tags=["transactions"])
+app.include_router(miners_router, tags=["miners"])
 
 
 

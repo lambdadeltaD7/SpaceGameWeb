@@ -47,3 +47,11 @@ class TransactionsSchemaPD(BaseModel):
     res1: int = Field(ge=0)
     res2: int = Field(ge=0)
     created_at: int  = Field(ge=0)
+
+
+
+class MinersSchemaPD(BaseModel):
+    world_id: int
+    user_id: int
+    x: int = Field(ge=0)
+    y: int = Field(ge=0)

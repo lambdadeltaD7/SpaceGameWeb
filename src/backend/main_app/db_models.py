@@ -87,3 +87,23 @@ class TransactionsSchemaDB(Base):
     res1: Mapped[int]
     res2: Mapped[int]
     created_at: Mapped[int] = mapped_column(BigInteger)
+
+
+
+class MinersSchemaDB(Base):
+    __tablename__ = "miners"
+
+    miner_id: Mapped[int] = mapped_column(primary_key=True)
+    world_id: Mapped[int]
+    user_id: Mapped[int]
+    x: Mapped[int]
+    y: Mapped[int]
+
+    def to_dict(self):
+        return {
+            "miner_id": self.miner_id,
+            "world_id": self.world_id,
+            "user_id": self.user_id,
+            "x": self.x,
+            "y": self.y
+        }

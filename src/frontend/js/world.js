@@ -42,8 +42,9 @@ async function init() {
     user_info_txt.textContent = await get_user_info_str();
 
     const planets = await get_world_planets();
+    const miners = await get_world_miners();
 
-    render_world(world_info, planets);
+    render_world(world_info, planets, miners);
 }
 
 
@@ -57,10 +58,25 @@ function on_mouse_enter_planet(planet_info){
 
 }
 
-
 function on_mouse_leave_planet(){
     world_info_txt.textContent = old_status_text;
 }
+
+
+
+function on_mouse_enter_miner(miner_info){
+    world_info_txt.textContent = `
+        miner_id = ${miner_info.miner_id},
+        x = ${miner_info.x},
+        y = ${miner_info.y}
+    `;
+
+}
+
+function on_mouse_leave_miner(){
+    world_info_txt.textContent = old_status_text;
+}
+
 
 
 function init_planet_cell(curr_cell, planet_info){
@@ -69,8 +85,13 @@ function init_planet_cell(curr_cell, planet_info){
     curr_cell.addEventListener('click', () => {on_mouse_click_planet(planet_info)});
 }
 
+function init_miner_cell(curr_cell, miner_info){
+    curr_cell.addEventListener('mouseenter', () => {on_mouse_enter_miner(miner_info)});
+    curr_cell.addEventListener('mouseleave', on_mouse_leave_miner);
+    curr_cell.addEventListener('click', () => {on_mouse_click_miner(miner_info)});
+}
 
-function render_cell(grid, p_dict, i, j){
+function render_cell(grid, p_dict, m_dict, i, j){
     var curr_cell = document.createElement('div');
 
     if(grid[i][j] == 1){
@@ -81,6 +102,11 @@ function render_cell(grid, p_dict, i, j){
     else if (grid[i][j] == 2){
         curr_cell.style.backgroundColor = "green";
         init_planet_cell(curr_cell, p_dict[`${i}_${j}`]);
+    }
+
+    else if (grid[i][j] == 3){
+        curr_cell.style.backgroundColor = "red";
+        init_miner_cell(curr_cell, m_dict[`${i}_${j}`]);
     }
 
     else{
@@ -94,13 +120,15 @@ function render_cell(grid, p_dict, i, j){
 }
 
 
-async function render_world(world_info, planets) {
+async function render_world(world_info, planets, miners) {
     const w = world_info.w;
     const h = world_info.h;
     const cell_w = 100 / w;
 
     var grid = Array.from({length:h}, () => new Array(w).fill(0));
     var p_dict = {};
+    var m_dict = {};
+    
     for(var p of planets){
         grid[p.y][p.x] = 1;
         if(p.shield_on){
@@ -109,13 +137,18 @@ async function render_world(world_info, planets) {
         p_dict[ `${p.y}_${p.x}` ] = p;
     }
 
+    for(var m of miners){
+        grid[m.y][m.x] = 3;
+        m_dict[ `${m.y}_${m.x}` ] = m;
+    }
+
     game_grid.innerHTML = '';
     for(var i=0; i<h; ++i){
         const curr_row = document.createElement('div');
         curr_row.style = "display: flex; flex-direction: row";
 
         for(var j=0; j<w; ++j){
-            var curr_cell = render_cell(grid, p_dict, i, j);
+            var curr_cell = render_cell(grid, p_dict, m_dict, i, j);
             curr_row.append(curr_cell);
         }
 
@@ -147,6 +180,12 @@ async function get_world_planets() {
     return data;
 }
 
+
+async function get_world_miners() {
+    const result = await fetch(base_url + `/api/v1/miners/?world_id=${world_id}`);
+    const data = await result.json();
+    return data;
+}
 
 function init_shield_dialog(planet_info){
     var shield_dialog = document.createElement('div');
