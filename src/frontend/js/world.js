@@ -12,16 +12,10 @@ const user_info_txt = document.getElementById('user_info_txt');
 const space = document.getElementById('space');
 const game_grid = document.getElementById('game_grid');
 
-const shield_dialog = document.getElementById('shield_dialog');
-const shield_dialog_txt = document.getElementById('shield_dialog_txt');
-const shield_dialog_btn_ok = document.getElementById('shield_dialog_btn_ok');
-const shield_dialog_btn_cancel = document.getElementById('shield_dialog_btn_cancel');
-
 
 var world_id = null;
 var planet_info_card_id = null;
 var old_status_text = null;
-
 
 
 async function init() {
@@ -236,6 +230,51 @@ async function shield_dialog_btn_ok_callable(shield_dialog, planet_info){
 } 
 
 
+
+function init_sell_miner_dialog(miner_info){
+    var sell_miner_dialog = document.createElement('div');
+    sell_miner_dialog.id = `sell_miner_dialog_id_${miner_info.miner_id}`;
+    
+    sell_miner_dialog.style =
+        "position: absolute; top: 10%;" +
+        "left: 30%; border: solid black 5px; flex-direction: column;" +
+        "background-color: cadetblue; color: black;";
+
+    const sell_miner_dialog_txt = document.createElement('p');
+
+    sell_miner_dialog_txt.textContent = `sell miner_id=${miner_info.miner_id}\n`;
+    sell_miner_dialog_txt.textContent += 'you will get half the buy price after it';
+    sell_miner_dialog_txt.textContent += 'confirm?\n';
+
+    sell_miner_dialog.append(sell_miner_dialog_txt);
+   
+    return sell_miner_dialog;
+}
+
+
+async function sell_miner_dialog_btn_ok_callable(sell_miner_dialog, miner_info){
+    const result = await fetch(
+    base_url + `/api/v1/miners/${miner_info.miner_id}`,
+        {
+            method: 'DELETE',
+        }
+    );
+
+    if(result.ok){
+        document.getElementById(sell_miner_dialog.id).style.display="none";
+        document.getElementById(sell_miner_dialog.id).remove();
+        await init();
+    }
+    else{
+        const data = await result.json();
+        showErr(data.detail);
+        document.getElementById(sell_miner_dialog.id).remove();
+    }
+} 
+
+
+
+
 async function on_mouse_click_planet(planet_info){
 
     var shield_dialog = init_shield_dialog(planet_info);
@@ -260,6 +299,30 @@ async function on_mouse_click_planet(planet_info){
     document.getElementById('doc_body').append(shield_dialog);
 }
 
+
+async function on_mouse_click_miner(miner_info){
+
+    var sell_miner_dialog = init_sell_miner_dialog(miner_info);
+    const sell_miner_dialog_btn_ok = document.createElement('button');
+    const sell_miner_dialog_btn_cancel = document.createElement('button');
+
+    sell_miner_dialog_btn_ok.textContent = 'sell miner';
+    sell_miner_dialog_btn_cancel.textContent = 'cancel';
+
+    sell_miner_dialog.append(sell_miner_dialog_btn_ok);
+    sell_miner_dialog.append(sell_miner_dialog_btn_cancel);
+
+    sell_miner_dialog_btn_ok.addEventListener('click', async () => {
+        await sell_miner_dialog_btn_ok_callable(sell_miner_dialog, miner_info);
+    });
+
+    sell_miner_dialog_btn_cancel.addEventListener('click', () => {
+        sell_miner_dialog.style.display = "none";
+        document.getElementById(sell_miner_dialog.id).remove();
+    });
+
+    document.getElementById('doc_body').append(sell_miner_dialog);
+}
 
 queueMicrotask(async () => {await init();});
 
