@@ -1,19 +1,22 @@
 from typing import Annotated
 
 from sqlalchemy.orm import Session
-from sqlalchemy import select, delete, text
+from sqlalchemy import select, delete, text, and_
 
+from endpoints.transactions import update_user_balance
 from endpoints.admin import check_admin
 from endpoints.auth import get_or_create_session
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from pd_models import MinersSchemaPD
-from db_models import MinersSchemaDB
+from db_models import MinersSchemaDB, PlanetsSchemaDB
 
 from db_connection import sql_engine, r_sessions, r_game
 
 
 router = APIRouter(prefix="/api/v1/miners")
+
+MINER_BUY_PRICE = 20
 
 def log_msg(txt):
     print('#'*64)
@@ -106,16 +109,45 @@ def get_miner(miner_id: int):
 @router.post("/")
 def create_miner(
     is_admin: Annotated[bool, Depends(check_admin)],
+    session_id: Annotated[str, Depends(get_or_create_session)],
     miner: MinersSchemaPD
 ):
 
-    if not is_admin:
+    requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
+
+    if (str(miner.user_id) != requester_uid) and (not is_admin):
         raise HTTPException(
             status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "only for admins"
+            detail = "you must be an owner or admin to do this"
         )
 
     with Session(sql_engine) as ses:
+        stmt = select(
+                PlanetsSchemaDB
+            ).where(
+                and_(
+                    and_(
+                        PlanetsSchemaDB.world_id == miner.world_id,
+                        PlanetsSchemaDB.x == miner.x
+                    ),
+                    PlanetsSchemaDB.y == miner.y
+                )
+            )
+        result = ses.scalar(stmt)
+
+        if result is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="cant create miner over the planet" 
+            )
+
+        update_user_balance(
+            user_id = int(miner.user_id),
+            db_session = ses,
+            delta_res1 = (-1) * MINER_BUY_PRICE,
+            delta_res2 = 0
+        )
+
         miner_obj = MinersSchemaDB(**dict(miner))
         ses.add(miner_obj)
         ses.commit()
@@ -151,6 +183,8 @@ def check_miner_ownership(
                 detail = f"there is no miner with {miner_id=}" 
             )
 
+    return miner
+
 
 @router.delete("/{miner_id}")
 def delete_miner(
@@ -159,7 +193,7 @@ def delete_miner(
     miner_id: int
 ):
 
-    check_miner_ownership(miner_id, session_id, is_admin)
+    miner = check_miner_ownership(miner_id, session_id, is_admin)
 
     with Session(sql_engine) as ses:
         m_stmt = delete(
@@ -168,6 +202,13 @@ def delete_miner(
                     MinersSchemaDB.miner_id == miner_id
                 )
         m_result = ses.execute(m_stmt)
+
+        update_user_balance(
+            user_id = miner.user_id,
+            db_session = ses,
+            delta_res1 = MINER_BUY_PRICE // 2,
+            delta_res2 = 0
+        )
 
         ses.commit()
         
