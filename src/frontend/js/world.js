@@ -7,6 +7,7 @@ import {
 
 const status_bar = document.getElementById('status_bar');
 const world_info_txt = document.getElementById('world_info_txt');
+const user_info_txt = document.getElementById('user_info_txt');
 
 const space = document.getElementById('space');
 const game_grid = document.getElementById('game_grid');
@@ -37,6 +38,8 @@ async function init() {
     `;
 
     old_status_text = world_info_txt.textContent;
+
+    user_info_txt.textContent = await get_user_info_str();
 
     const planets = await get_world_planets();
 
@@ -120,6 +123,16 @@ async function render_world(world_info, planets) {
     }
 }
 
+async function get_user_info_str() {
+    const result = await fetch(base_url + `/api/v1/auth/session_info`);
+    const data = await result.json();
+    if(data.is_logged){
+        return `username:${data.username}, res1:${data.res1}, res2:${data.res2}, GLOBAL_cnt_active_shields:${data.cnt_active_shields}`;
+    }
+    else{
+        return "You are not logged in. No info here."
+    }
+}
 
 async function get_world_info() {
     const result = await fetch(base_url + `/api/v1/worlds/${world_id}`);

@@ -111,7 +111,8 @@ def session_info(session_id: Annotated[str, Depends(get_or_create_session)]):
                 "user_id"   : user_id,
                 "is_admin"  : user_info["is_admin"],
                 "res1"      : int(user_info["res1"]), 
-                "res2"      : int(user_info["res2"]) 
+                "res2"      : int(user_info["res2"]),
+                "cnt_active_shields": int(user_info["cnt_active_shields"])
             } 
 
     except Exception as ex:

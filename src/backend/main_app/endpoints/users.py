@@ -165,6 +165,8 @@ def delete_user(
 
     cnt_ses = kill_user_sessions(user_id)
 
+    r_sessions.remove(f"user_info:{user_id}")
+
     return {
         "killed sessions" : cnt_ses,
         "deleted users"   : usr_res.rowcount,

@@ -105,16 +105,46 @@ def update_user_balance(
     delta_res1: int,
     delta_res2: int
 ):
-    stmt = update(
-                UsersSchemaDB
-            ).where(
-                UsersSchemaDB.user_id == user_id
-            ).values(
-                res1 = UsersSchemaDB.res1 + delta_res1,
-                res2 = UsersSchemaDB.res2 + delta_res2,
+
+    if r_sessions.json().get(f"user_info:{user_id}"):
+
+        old_r1 = r_sessions.json().get(f"user_info:{user_id}")["res1"]
+        if old_r1 + delta_res1 < 0:
+            raise HTTPException(
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                detail="res1 cant be <0 after transaction"
+            )
+        
+        old_r2 = r_sessions.json().get(f"user_info:{user_id}")["res2"]
+        if old_r2 + delta_res2 < 0:
+            raise HTTPException(
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                detail="res2 cant be <0 after transaction"
             )
 
-    db_session.execute(stmt)
+        r_sessions.json().set(
+            f"user_info:{user_id}",
+            "$.res1",
+            old_r1 + delta_res1
+        )
+        r_sessions.json().set(
+            f"user_info:{user_id}",
+            "$.res2",
+            old_r2 + delta_res2
+        )
+        
+
+    else: 
+        stmt = update(
+                    UsersSchemaDB
+                ).where(
+                    UsersSchemaDB.user_id == user_id
+                ).values(
+                    res1 = UsersSchemaDB.res1 + delta_res1,
+                    res2 = UsersSchemaDB.res2 + delta_res2,
+                )
+
+        db_session.execute(stmt)
 
 
 

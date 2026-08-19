@@ -42,3 +42,14 @@ class PlanetsSchemaDB(Base):
         }
 
 
+class UsersSchemaDB(Base):
+    __tablename__ = "users"
+
+    user_id: Mapped[int] = mapped_column(primary_key=True)
+    user_name: Mapped[str]
+    user_email: Mapped[str] 
+    user_password: Mapped[str]
+    pass_salted_hashed: Mapped[str]
+    is_admin: Mapped[bool]
+    res1: Mapped[int]
+    res2: Mapped[int]

@@ -44,8 +44,8 @@ async function init() {
 
         balance_info_txt.textContent =
             'balance: (' +  
-            `res1: ${user_d.res1}, ` +
-            `res2: ${user_d.res2})`; 
+            `res1: ${session_info.res1}, ` +
+            `res2: ${session_info.res2})`; 
 
 
         await update_transactions();
@@ -85,3 +85,4 @@ transaction_btn.addEventListener('click', async () => {
 queueMicrotask(async () => {await init();});
 
 setInterval(async () => {await show_latest_transactions();}, 5000);
+setInterval(async () => {await init();}, 5000);
