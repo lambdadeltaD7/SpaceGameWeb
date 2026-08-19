@@ -30,9 +30,7 @@ def create_session():
     r_sessions.hset(
         f"ses_{session_id}",
         mapping = {
-            "user_id"  : "",
-            "username" : "",
-            "is_admin" : "",
+            "user_id"  : ""
         }
     )
 
@@ -60,6 +58,7 @@ def get_or_create_session(
     else:
         _, result = r_sessions.scan(cursor=0, match=f"ses_{session_id}")
 
+        # mb suggest to clear the cookies?
         if len(result) == 0:
             raise HTTPException(
                 status_code = status.HTTP_406_NOT_ACCEPTABLE,
@@ -81,9 +80,9 @@ def online_info():
     online_cnt = 0
 
     for k in keys:
-        user_data = r_sessions.hgetall(k)
+        user_id = r_sessions.hget(k, "user_id")
         online_cnt += 1
-        if user_data["user_id"] != "":
+        if user_id != "":
             logged_cnt += 1
             
     return {
@@ -94,24 +93,25 @@ def online_info():
 
 @router.get("/session_info")
 def session_info(session_id: Annotated[str, Depends(get_or_create_session)]):
-    try:
-        user_name = r_sessions.hget(f"ses_{session_id}", "username")
+    try:        
         user_id = r_sessions.hget(f"ses_{session_id}", "user_id")
-        is_admin = r_sessions.hget(f"ses_{session_id}", "is_admin")
 
-        if user_name == "":
+        if user_id == "":
             return {
                 "msg"       : f"(anonimous session) with {session_id=}",
                 "is_logged" : False
             }
 
         else:
+            user_info = r_sessions.json().get(f"user_info:{user_id}")
             return {
-                "msg"       : f"hi, {user_name}! with {session_id=}",
+                "msg"       : f"hi, {user_info["username"]}! with {session_id=}",
                 "is_logged" : True,
-                "username"  : user_name,
+                "username"  : user_info["username"],
                 "user_id"   : user_id,
-                "is_admin"  : is_admin
+                "is_admin"  : user_info["is_admin"],
+                "res1"      : int(user_info["res1"]), 
+                "res2"      : int(user_info["res2"])
             } 
 
     except Exception as ex:
@@ -144,15 +144,23 @@ def registration(
 
         ses.refresh(user_db_obj)
 
-
     r_sessions.delete(f"ses_{old_session_id}")
 
     new_session_id = create_session()
-    r_sessions.hset(f"ses_{new_session_id}", "username", user_db_obj.user_name)
     r_sessions.hset(f"ses_{new_session_id}", "user_id", user_db_obj.user_id)
-    r_sessions.hset(f"ses_{new_session_id}", "is_admin", user_db_obj.is_admin)
 
-    r_sessions.rpush(f"user_{user_db_obj.user_id}", new_session_id)
+    r_sessions.json().set(
+        f"user_info:{user_db_obj.user_id}",
+        "$",
+        {
+            "username" :  user_db_obj.user_name,
+            "is_admin" :  int(user_db_obj.is_admin),
+            "res1"     :  user_db_obj.res1, 
+            "res2"     :  user_db_obj.res2,
+        }
+    )
+
+    r_sessions.sadd(f"user_sessions:{user_db_obj.user_id}", new_session_id)
 
     response.set_cookie(
         key = COOKIE_SESSION_ID_KEY,
@@ -189,11 +197,20 @@ def login(
         r_sessions.delete(f"ses_{old_session_id}")
 
         new_session_id = create_session()
-        r_sessions.hset(f"ses_{new_session_id}", "username", user.user_name)
         r_sessions.hset(f"ses_{new_session_id}", "user_id", user_db_obj.user_id)
-        r_sessions.hset(f"ses_{new_session_id}", "is_admin", int(user_db_obj.is_admin))
 
-        r_sessions.rpush(f"user_{user_db_obj.user_id}", new_session_id)
+        r_sessions.json().set(
+            f"user_info:{user_db_obj.user_id}",
+            "$",
+            {
+                "username" :  user_db_obj.user_name,
+                "is_admin" :  int(user_db_obj.is_admin),
+                "res1"     :  user_db_obj.res1, 
+                "res2"     :  user_db_obj.res2,
+            }
+        )
+
+        r_sessions.sadd(f"user_sessions:{user_db_obj.user_id}", new_session_id)
 
         response.set_cookie(
             key = COOKIE_SESSION_ID_KEY,
@@ -219,9 +236,10 @@ def logout(
     old_session_id: Annotated[str, Depends(get_or_create_session)],
 ):
 
-    user_info = r_sessions.hgetall(f"ses_{old_session_id}")
+    user_id = r_sessions.hget(f"ses_{old_session_id}", "user_id")
 
-    r_sessions.lrem(f"user_{user_info["user_id"]}", 0, old_session_id)
+    r_sessions.srem(f"user_sessions:{user_db_obj.user_id}", old_session_id)
+
     r_sessions.delete(f"ses_{old_session_id}")
     
     new_session_id = create_session()

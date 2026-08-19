@@ -96,7 +96,7 @@ def check_world_ownership(
             if (str(world.user_id) != requester_uid) and (not is_admin):
                 raise HTTPException(
                     status_code = status.HTTP_401_UNAUTHORIZED,
-                    detail = "you must ba an owner or admin to do this"
+                    detail = "you must be an owner or admin to do this"
                 )
         else:
             raise HTTPException(

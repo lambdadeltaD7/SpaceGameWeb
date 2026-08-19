@@ -86,14 +86,13 @@ def create_user(
     return user_obj
 
 
-def kill_user_sessions(user_id: int) -> int:
-    
-    sessions = r_sessions.lrange(f"user_{user_id}", 0, -1)
+def kill_user_sessions(user_id: int) -> int:    
+    sessions = r_sessions.smembers(f"user_sessions:{user_id}")
 
     for ses_id in sessions:
         r_sessions.delete(f"ses_{ses_id}")
 
-    r_sessions.delete(f"user_{user_id}")
+    r_sessions.delete(f"user_sessions:{user_id}")
 
     return len(sessions)
 

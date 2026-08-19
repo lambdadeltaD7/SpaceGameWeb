@@ -52,9 +52,10 @@ def kill_session(
             detail = "only for admins"
         )
 
-    user_info = r_sessions.hgetall(f"ses_{session_id}")
-
-    r_sessions.lrem(f"user_{user_info["user_id"]}", 0, session_id)
+    user_id = r_sessions.hget(f"ses_{session_id}", "user_id")
+    if user_id != "":
+        r_sessions.srem(f"user_sessions:{user_id}", session_id)
+        
     cnt_deleted_sess = r_sessions.delete(f"ses_{session_id}")
 
     return {"log" : f"cancelled {cnt_deleted_sess} sessions"}
@@ -74,9 +75,11 @@ def get_sessions(is_admin: Annotated[bool, Depends(check_admin)]):
     sessions = []
 
     for k in keys:
+        ses_id = k[4:]
+        user_id = r_sessions.hget(k, "user_id")
         sessions.append({
-            "session_id" : k[4:],
-            "user_data"  : r_sessions.hgetall(k) 
+            "session_id" : ses_id,
+            "user_data"  : r_sessions.json().get(f"user_info:{user_id}") 
         })
 
     return sessions

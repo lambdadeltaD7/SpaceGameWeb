@@ -50,9 +50,9 @@ def update_online_info():
     online_cnt = 0
 
     for k in keys:
-        user_data = r_sessions.hgetall(k)
+        user_id = r_sessions.hget(k, "user_id")
         online_cnt += 1
-        if user_data["user_id"] != "":
+        if user_id != "":
             logged_cnt += 1
             
     r_sessions.json().set(
@@ -63,3 +63,12 @@ def update_online_info():
             "logged_cnt" : logged_cnt
         }
     )
+
+
+@shared_task
+def flush_redis_users_state():
+    pass
+
+@shared_task
+def handle_shield_res_use():
+    pass
