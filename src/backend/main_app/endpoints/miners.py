@@ -112,7 +112,7 @@ def create_miner(
     session_id: Annotated[str, Depends(get_or_create_session)],
     miner: MinersSchemaPD
 ):
-
+    
     requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
 
     if (str(miner.user_id) != requester_uid) and (not is_admin):
