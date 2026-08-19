@@ -1,6 +1,6 @@
 import logging
 from celery import shared_task
-from sqlalchemy import update 
+from sqlalchemy import update, select, and_
 from sqlalchemy.orm import Session 
 
 from db_connection import sql_engine, r_game, r_sessions
@@ -19,15 +19,19 @@ def flush_redis_worlds_state():
     with Session(sql_engine) as ses:
 
         for k in keys:
-
+            
+            
             logger.info(f"for key {k}")
             world_data = r_game.json().get(k)
             r_game.delete(k)
             logger.info(f"{world_data=}")
+            user_id = None
 
+            # update planets state
             if "planets" in world_data.keys():
                 logger.info("we have some planets")
                 for _, p in world_data["planets"].items():
+                    user_id = int(p["user_id"])
                     stmt = update(
                         PlanetsSchemaDB
                     ).where(
@@ -41,6 +45,28 @@ def flush_redis_worlds_state():
 
             r_game.delete(k)
             ses.commit()
+
+            # update user stats
+            if user_id is not None:
+                stmt = select(
+                        PlanetsSchemaDB.user_id
+                    ).where(
+                        and_(
+                            PlanetsSchemaDB.user_id == user_id,
+                            PlanetsSchemaDB.shield_on == True
+                        )
+                    )
+                cnt_active_shields = len(ses.scalars(stmt).all())
+        
+                
+                r_sessions.json().set(
+                    f"user_info:{user_id}",
+                    "$.cnt_active_shields",
+                    cnt_active_shields
+                )
+
+            ses.commit()
+
 
 
 @shared_task

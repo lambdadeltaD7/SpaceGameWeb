@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS worlds(
 CREATE TABLE IF NOT EXISTS planets(
     planet_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     world_id INT,
+    user_id INT,
     res1 INT CHECK(res1 >= 0),
     res2 INT CHECK(res2 >= 0),
     x INT CHECK(x >= 0),

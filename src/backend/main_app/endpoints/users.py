@@ -140,18 +140,12 @@ def delete_user(
 
     with Session(sql_engine) as ses:
         
-        # n + 1 ?
-        subq = select(
-                    WorldsSchemaDB.world_id
-                ).where(
-                    WorldsSchemaDB.user_id == user_id
-                ).subquery()
         stmt = delete(
                     PlanetsSchemaDB
                 ).where(
-                    PlanetsSchemaDB.world_id.in_(subq)
+                    PlanetsSchemaDB.user_id == user_id
                 )
-        plt_res = ses.execute(stmt)
+        plnt_res = ses.execute(stmt)
 
         stmt = delete(
                     WorldsSchemaDB
@@ -174,7 +168,7 @@ def delete_user(
     return {
         "killed sessions" : cnt_ses,
         "deleted users"   : usr_res.rowcount,
-        "deleted planets" : plt_res.rowcount,
+        "deleted planets" : plnt_res.rowcount,
         "deleted worlds"  : wrld_res.rowcount,
     }
 

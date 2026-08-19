@@ -32,6 +32,7 @@ class WorldsSchemaPD(BaseModel):
 
 class PlanetsSchemaPD(BaseModel):
     world_id: int
+    user_id: int
     res1: int = Field(ge=0)
     res2: int = Field(ge=0)
     x: int = Field(ge=0)

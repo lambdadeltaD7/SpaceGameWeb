@@ -27,6 +27,7 @@ def planet_from_str(p):
     return {
         "planet_id": int(p["planet_id"]),
         "world_id": int(p["world_id"]),
+        "user_id": int(p["user_id"]),
         "res1": int(p["res1"]),
         "res2": int(p["res2"]),
         "x": int(p["x"]),
@@ -142,18 +143,10 @@ def check_planet_ownership(
                     PlanetsSchemaDB.planet_id == planet_id
                 )
 
-        planet = ses.scalar(stmt)
+        planet: PlanetsSchemaDB = ses.scalar(stmt)
     
         if planet:
-            world_id = planet.world_id
-            stmt = select(
-                        WorldsSchemaDB
-                    ).where(
-                        WorldsSchemaDB.world_id == world_id
-                    )
-            world = ses.scalar(stmt)
-
-            if (str(world.user_id) != requester_uid) and (not is_admin):
+            if (str(planet.user_id) != requester_uid) and (not is_admin):
                 raise HTTPException(
                     status_code = status.HTTP_401_UNAUTHORIZED,
                     detail = "you must ba an owner or admin to do this"

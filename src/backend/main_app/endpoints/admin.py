@@ -133,6 +133,7 @@ def post_generate_world(
 
         for p in planets:
             p.world_id = world.world_id
+            p.user_id = user_id
         
         ses.add_all(planets)
         ses.commit()

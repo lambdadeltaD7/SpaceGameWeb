@@ -22,6 +22,7 @@ class PlanetsSchemaDB(Base):
 
     planet_id: Mapped[int] = mapped_column(primary_key=True)
     world_id: Mapped[int]
+    user_id: Mapped[int]
     res1: Mapped[int]
     res2: Mapped[int]
     x: Mapped[int] 

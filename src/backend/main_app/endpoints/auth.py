@@ -9,9 +9,9 @@ from fastapi import (
 from fastapi.responses import RedirectResponse
 
 from pd_models import *
-from db_models import UsersSchemaDB
+from db_models import UsersSchemaDB, PlanetsSchemaDB
 
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 from db_connection import r_sessions, sql_engine
 
@@ -111,7 +111,7 @@ def session_info(session_id: Annotated[str, Depends(get_or_create_session)]):
                 "user_id"   : user_id,
                 "is_admin"  : user_info["is_admin"],
                 "res1"      : int(user_info["res1"]), 
-                "res2"      : int(user_info["res2"])
+                "res2"      : int(user_info["res2"]) 
             } 
 
     except Exception as ex:
@@ -153,10 +153,11 @@ def registration(
         f"user_info:{user_db_obj.user_id}",
         "$",
         {
-            "username" :  user_db_obj.user_name,
-            "is_admin" :  int(user_db_obj.is_admin),
-            "res1"     :  user_db_obj.res1, 
-            "res2"     :  user_db_obj.res2,
+            "username" : user_db_obj.user_name,
+            "is_admin" : int(user_db_obj.is_admin),
+            "res1" : user_db_obj.res1, 
+            "res2" : user_db_obj.res2,
+            "cnt_active_shields" : 0 
         }
     )
 
@@ -198,6 +199,17 @@ def login(
 
         new_session_id = create_session()
         r_sessions.hset(f"ses_{new_session_id}", "user_id", user_db_obj.user_id)
+        
+        with Session(sql_engine) as ses:
+            stmt = select(
+                    PlanetsSchemaDB.shield_on
+                ).where(
+                    and_(
+                        PlanetsSchemaDB.user_id == user_db_obj.user_id,
+                        PlanetsSchemaDB.shield_on == True
+                    )
+                )
+            cnt_active_shields = len(ses.scalars(stmt).all())
 
         r_sessions.json().set(
             f"user_info:{user_db_obj.user_id}",
@@ -205,8 +217,9 @@ def login(
             {
                 "username" :  user_db_obj.user_name,
                 "is_admin" :  int(user_db_obj.is_admin),
-                "res1"     :  user_db_obj.res1, 
-                "res2"     :  user_db_obj.res2,
+                "res1" :  user_db_obj.res1, 
+                "res2" :  user_db_obj.res2,
+                "cnt_active_shields" : cnt_active_shields
             }
         )
 
@@ -238,7 +251,7 @@ def logout(
 
     user_id = r_sessions.hget(f"ses_{old_session_id}", "user_id")
 
-    r_sessions.srem(f"user_sessions:{user_db_obj.user_id}", old_session_id)
+    r_sessions.srem(f"user_sessions:{user_id}", old_session_id)
 
     r_sessions.delete(f"ses_{old_session_id}")
     
