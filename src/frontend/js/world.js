@@ -130,10 +130,12 @@ function render_cell(grid, p_dict, m_dict, i, j){
     else{
         curr_cell.style.backgroundColor = "blue";
         init_space_cell(curr_cell, i, j);
+        curr_cell.className = 'space-cell';
     }
     
     curr_cell.style.width = `30px`;
     curr_cell.style.height = "30px";
+
 
     return curr_cell;
 }
@@ -141,10 +143,20 @@ function render_cell(grid, p_dict, m_dict, i, j){
 
 
 function init_space_cell(curr_cell, i, j){
-    // curr_cell.addEventListener('mouseenter', () => {on_mouse_enter_space()});
-    // curr_cell.addEventListener('mouseleave', on_mouse_leave_space);
+    curr_cell.className = 'space-cell';
+    // curr_cell.addEventListener('mouseenter', () => {on_mouse_enter_space(curr_cell)});
+    // curr_cell.addEventListener('mouseleave', on_mouse_leave_space(curr_cell));
     curr_cell.addEventListener('click', () => {on_mouse_click_space(i, j)});
 }
+
+// function on_mouse_enter_space(curr_cell){
+//     curr_cell.style.outline = "solid black 3px";
+//     curr_cell.style.outlineOffset = "-3px";
+// }
+
+// function on_mouse_leave_space(curr_cell){
+//     curr_cell.style.border = "none";
+// }
 
 async function on_mouse_click_space(i, j){
 
