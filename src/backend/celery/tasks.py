@@ -10,6 +10,10 @@ from db_models import PlanetsSchemaDB, WorldsSchemaDB, UsersSchemaDB
 logger = logging.getLogger(__name__)
 
 SHIELD_COST = 2
+MINER_RADIUS = 3
+MINER_RES1_EXTRACTION_SPEED = 3
+MINER_RES2_EXTRACTION_SPEED = 4
+
 
 @shared_task
 def flush_redis_worlds_state():
@@ -161,4 +165,127 @@ def flush_redis_users_state():
                 )
             ses.execute(stmt)
             ses.commit()
+
+
+def get_neighb(x, y, r, w, h):
+    res = []
+    for dx in range(-r, r + 1):
+        for dy in range(-r, r + 1):
+            if (0 <= x + dx < w) and (0 <= y + dy < h):
+                res.append( (x + dx, y + dy) )
+    return res
+
+@shared_task
+def handle_miner_res_extraction():
+    # exctracting only when world is in cache
+
+    _, world_keys = r_game.scan(0, "world_*")
+
+    users_updates = dict()
+
+    for wk in world_keys:
+        
+        world_id = int(wk[ wk.index("_") + 1 : ])
+
+        logger.warn(f"processing {world_id=}...\n")
+
+        planets = r_game.json().get(f"world_{world_id}", "$.planets")
+        miners = r_game.json().get(f"world_{world_id}", "$.miners")
+        size = r_game.json().get(f"world_{world_id}", "$.size")
+
+        if (not planets) or (not miners) or (not size):
+            logger.warn(f"don't have enough info for {world_id=}")
+            continue
+        
+        planets = planets[0]
+        miners = miners[0]
+        size = size[0]
     
+        planets_map = dict()
+        for p in planets.values():
+            planets_map[ (p["x"], p["y"]) ] = p
+        
+        for m in miners.values():
+            logger.warn(f"processing miner_id={m["miner_id"]}...\n")
+            neighb = get_neighb(m["x"], m["y"], MINER_RADIUS, size["w"], size["h"])
+            for (x,y) in neighb:
+                if (x,y) in planets_map:
+                    p = planets_map[(x,y)]
+
+                    old_r1, old_r2 = p["res1"], p["res2"]
+                    new_r1 = max(0, old_r1 - MINER_RES1_EXTRACTION_SPEED)
+                    new_r2 = max(0, old_r2 - MINER_RES2_EXTRACTION_SPEED)
+                    got_r1 = old_r1 - new_r1 
+                    got_r2 = old_r2 - new_r2 
+
+                    r_game.json().set(
+                        f"world_{world_id}",
+                        f"$.planets.{p["planet_id"]}.res1",
+                        new_r1
+                    )
+                    r_game.json().set(
+                        f"world_{world_id}",
+                        f"$.planets.{p["planet_id"]}.res2",
+                        new_r2
+                    )
+
+                    if p["user_id"] not in users_updates:
+                        users_updates[p["user_id"]] = {"res1" : 0, "res2" : 0}
+                    users_updates[p["user_id"]]["res1"] += got_r1
+                    users_updates[p["user_id"]]["res2"] += got_r2
+                    
+                    logger.warn(
+                        (f"for miner_id={m["miner_id"]}({m["x"]},{m["y"]})\n"
+                        f"found planet_id={p["planet_id"]}({p["x"]},{p["y"]})\n"
+                        f"res1: ({old_r1}) -> ({new_r1})\n"
+                        f"res2: ({old_r2}) -> ({new_r2})\n\n")
+                    )
+
+                    if new_r1 == 0:
+                        logger.warn(f"planet_id={p["planet_id"]} out of res1")
+                    if new_r2 == 0:
+                        logger.warn(f"planet_id={p["planet_id"]} out of res2")
+
+
+    for uid in users_updates:
+        user_info = r_sessions.json().get(
+            f"user_info:{uid}"
+        )       
+
+        if user_info:
+            r_sessions.json().set(
+                f"user_info:{uid}",
+                "$.res1",
+                user_info["res1"] + users_updates[uid]["res1"]
+            )
+
+            r_sessions.json().set(
+                f"user_info:{uid}",
+                "$.res2",
+                user_info["res2"] + users_updates[uid]["res2"]
+            )
+
+            logger.warn(
+                (f"incremented in cache for {uid=}\n"
+                f"res1 += {users_updates[uid]["res1"]}\n"
+                f"res2 += {users_updates[uid]["res2"]}\n\n")
+            )
+
+        else:
+            with Session(sql_engine) as ses:
+                stmt = update(
+                    UsersSchemaDB
+                ).where(
+                    UsersSchemaDB.user_id == uid
+                ).values(
+                    res1 = UsersSchemaDB.res1 + users_updates[uid]["res1"],
+                    res2 = UsersSchemaDB.res2 + users_updates[uid]["res2"]
+                )
+                ses.execute(stmt)
+                ses.commit()
+
+            logger.warn(
+                (f"incremented in db for {uid=}\n"
+                f"res1 += {users_updates[uid]["res1"]}\n"
+                f"res2 += {users_updates[uid]["res2"]}\n\n")
+            )

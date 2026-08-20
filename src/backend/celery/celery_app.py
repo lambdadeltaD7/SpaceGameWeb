@@ -9,7 +9,7 @@ FLUSH_REDIS_WORLDS_STATE_INTERVAL = 10.0
 FLUSH_REDIS_USERS_STATE_INTERVAL = 10.0
 UPDATE_ONLINE_INFO_INTERVAL = 5.0
 HANDLE_SHIELD_RES_USE_INTERVAL = 5.0
-
+HANDLE_MINER_RES_EXTRACTION_INTERVAL = 5.0
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender: Celery, **kwargs):
@@ -36,6 +36,12 @@ def setup_periodic_tasks(sender: Celery, **kwargs):
         HANDLE_SHIELD_RES_USE_INTERVAL,
         handle_shield_res_use,
         name='handle_shield_res_use'
+    )
+
+    sender.add_periodic_task(
+        HANDLE_MINER_RES_EXTRACTION_INTERVAL,
+        handle_miner_res_extraction,
+        name='handle_miner_res_extraction'
     )
 
 

@@ -1,3 +1,5 @@
+import logging
+
 from typing import Annotated
 
 from sqlalchemy.orm import Session
@@ -14,6 +16,8 @@ from db_connection import sql_engine, r_sessions, r_game
 
 
 router = APIRouter(prefix="/api/v1/planets")
+
+logger = logging.getLogger(__name__)
 
 def log_msg(txt):
     print('#'*64)
@@ -55,14 +59,26 @@ def get_planets(
         stmt = select(PlanetsSchemaDB)
         
         if world_id is not None:
+            res = ses.execute(
+                select(
+                    WorldsSchemaDB.w, WorldsSchemaDB.h
+                ).where(
+                    WorldsSchemaDB.world_id == world_id
+                )
+            ).all()
+            if res:
+                w,h = res[0]
+                logger.warn(f"wid={world_id} w,h={w},{h}")
+            else:
+                logger.warn(f"no {world_id=} found")
             stmt = stmt.where(PlanetsSchemaDB.world_id == world_id)
-
+            
         stmt = stmt.limit(limit).offset(offset)
 
         planets = ses.scalars(stmt).all()
 
     # write to cache
-    if world_id is not None:
+    if (world_id is not None) and res:
         if r_game.json().get(f"world_{world_id}"):
             r_game.json().set(
                 f"world_{world_id}",
@@ -75,6 +91,12 @@ def get_planets(
                 "$",
                 {"planets":{}}
             )
+
+        r_game.json().set(
+            f"world_{world_id}",
+            "$.size",
+            {"w" : w, "h" : h}
+        )
 
         for p in planets:
             r_game.json().set(
