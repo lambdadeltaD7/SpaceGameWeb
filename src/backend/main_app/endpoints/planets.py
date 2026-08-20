@@ -232,7 +232,15 @@ def delete_planet(
     planet_id: int
 ):
 
-    check_planet_ownership(planet_id, session_id, is_admin)
+    planet = check_planet_ownership(planet_id, session_id, is_admin)
+
+    try:
+        r_game.json().delete(
+            f"world_{planet.world_id}",
+            f"$.planets.{planet.planet_id}"
+        )
+    except Exception as ex:
+        logger.error(f"err while del planet_id={planet.planet_id} from cache: {ex}")
 
     with Session(sql_engine) as ses:
         stmt = delete(
@@ -242,6 +250,7 @@ def delete_planet(
                 )
         result = ses.execute(stmt)
         ses.commit()
+
 
     return {"log": f"deleted {result.rowcount} rows"}
 

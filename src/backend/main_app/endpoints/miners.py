@@ -1,4 +1,5 @@
 from typing import Annotated
+import logging
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, text, and_
@@ -13,6 +14,7 @@ from db_models import MinersSchemaDB, PlanetsSchemaDB
 
 from db_connection import sql_engine, r_sessions, r_game
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/miners")
 
@@ -153,6 +155,15 @@ def create_miner(
         ses.commit()
         ses.refresh(miner_obj)
 
+    try:
+        r_game.json().set(
+            f"world_{miner_obj.world_id}",
+            f"$.miners.{miner_obj.miner_id}",
+            miner_obj.to_dict()
+        )
+    except Exception as ex:
+        logger.error(f"cant add miner_id={miner_obj.miner_id} to cache after creating: {ex}")
+
     return miner_obj
 
 
@@ -195,6 +206,14 @@ def delete_miner(
 
     miner = check_miner_ownership(miner_id, session_id, is_admin)
 
+    try:
+        r_game.json().delete(
+            f"world_{miner.world_id}",
+            f"$.miners.{miner.miner_id}"
+        )
+    except Exception as ex:
+        logger.error(f"err while del miner_id={miner.miner_id} from cache: {ex}")
+
     with Session(sql_engine) as ses:
         m_stmt = delete(
                     MinersSchemaDB
@@ -211,7 +230,9 @@ def delete_miner(
         )
 
         ses.commit()
-        
+    
+    
+
     return {"log": f"deleted {m_result.rowcount} miners"}
 
 
