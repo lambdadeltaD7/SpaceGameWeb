@@ -45,69 +45,14 @@ def planet_from_str(p):
 
 @router.get("/")
 def get_planets(
-    world_id: int | None = None,
     limit:    int | None = Query(default=67, ge=0, le=67),
     offset:   int | None = Query(default=0,  ge=0)
 ):
 
-    # try to get from cache
-    if world_id is not None:
-        cached_planets = r_game.json().get(f"world_{world_id}", "$.planets")
-        if cached_planets:
-            log_msg("get_planets cache hit")
-            return [planet_from_str(p) for p_id,p in cached_planets[0].items()]
-        else:
-            log_msg("get_planets cache miss")
-
     with Session(sql_engine) as ses:
-        stmt = select(PlanetsSchemaDB)
-        
-        if world_id is not None:
-            res = ses.execute(
-                select(
-                    WorldsSchemaDB.w, WorldsSchemaDB.h
-                ).where(
-                    WorldsSchemaDB.world_id == world_id
-                )
-            ).all()
-            if res:
-                w,h = res[0]
-                logger.warn(f"wid={world_id} w,h={w},{h}")
-            else:
-                logger.warn(f"no {world_id=} found")
-            stmt = stmt.where(PlanetsSchemaDB.world_id == world_id)
-            
+        stmt = select(PlanetsSchemaDB)    
         stmt = stmt.limit(limit).offset(offset)
-
         planets = ses.scalars(stmt).all()
-
-    # write to cache
-    if (world_id is not None) and res:
-        if r_game.json().get(f"world_{world_id}"):
-            r_game.json().set(
-                f"world_{world_id}",
-                "$.planets",
-                {}
-            )
-        else:
-            r_game.json().set(
-                f"world_{world_id}",
-                "$",
-                {"planets":{}}
-            )
-
-        r_game.json().set(
-            f"world_{world_id}",
-            "$.size",
-            {"w" : w, "h" : h}
-        )
-
-        for p in planets:
-            r_game.json().set(
-                    f"world_{world_id}",
-                    f"$.planets.{p.planet_id}",
-                    p.to_dict(to_str=True)
-                )
 
     return [p for p in planets]
 

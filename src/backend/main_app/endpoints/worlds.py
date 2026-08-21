@@ -1,5 +1,7 @@
 from typing import Annotated
 
+import logging
+
 from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, text
 
@@ -8,13 +10,46 @@ from endpoints.auth import get_or_create_session
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from pd_models import WorldsSchemaPD
-from db_models import WorldsSchemaDB, PlanetsSchemaDB
+from db_models import WorldsSchemaDB, PlanetsSchemaDB, MinersSchemaDB
 
 from db_connection import sql_engine, r_sessions, r_game
 
 from exceptions import *
 
 router = APIRouter(prefix="/api/v1/worlds")
+
+logger = logging.getLogger(__name__)
+
+def log_msg(txt):
+    print('#'*64)
+    print('#'*64)
+    print(txt)
+    print('#'*64)
+    print('#'*64)
+
+
+
+def miner_from_str(m):
+    return {
+        "miner_id": int(m["miner_id"]),
+        "world_id": int(m["world_id"]),
+        "user_id": int(m["user_id"]),
+        "x": int(m["x"]),
+        "y": int(m["y"]),
+    }
+    
+
+def planet_from_str(p):
+    return {
+        "planet_id": int(p["planet_id"]),
+        "world_id": int(p["world_id"]),
+        "user_id": int(p["user_id"]),
+        "res1": int(p["res1"]),
+        "res2": int(p["res2"]),
+        "x": int(p["x"]),
+        "y": int(p["y"]),
+        "shield_on": p["shield_on"] == "True"
+    }
 
 
 @router.get("/")
@@ -36,6 +71,126 @@ def get_worlds(
     return [w for w in worlds]
 
 
+
+
+@router.get("/{world_id}/miners")
+def get_world_miners(
+    world_id: int | None = None,
+    limit:   int | None = Query(default=67, ge=0, le=67),
+    offset:  int | None = Query(default=0,  ge=0)
+):
+    # try to get from cache
+    cached_miners = r_game.json().get(f"world_{world_id}", "$.miners")
+    if cached_miners:
+        log_msg("get_miners cache hit")
+        return [miner_from_str(m) for m_id,m in cached_miners[0].items()]
+    else:
+        log_msg("get_miners cache miss")
+
+    with Session(sql_engine) as ses:
+        stmt = select(MinersSchemaDB)
+        stmt = stmt.where(MinersSchemaDB.world_id == world_id)
+
+        stmt = stmt.limit(limit).offset(offset)
+        
+        miners = ses.scalars(stmt).all()
+
+    # write to cache
+    if r_game.json().get(f"world_{world_id}"):
+        r_game.json().set(
+            f"world_{world_id}",
+            "$.miners",
+            {}
+        )
+    else:
+        r_game.json().set(
+            f"world_{world_id}",
+            "$",
+            {"miners":{}}
+        )
+
+    for m in miners:
+        r_game.json().set(
+                f"world_{world_id}",
+                f"$.miners.{m.miner_id}",
+                m.to_dict()
+            )
+
+
+    return [m for m in miners]
+
+@router.get("/{world_id}/planets")
+def get_world_planets(
+    world_id: int | None = None,
+    limit:    int | None = Query(default=67, ge=0, le=67),
+    offset:   int | None = Query(default=0,  ge=0)
+):
+
+    # try to get from cache
+    cached_planets = r_game.json().get(f"world_{world_id}", "$.planets")
+    if cached_planets:
+        log_msg("get_planets cache hit")
+        return [planet_from_str(p) for p_id,p in cached_planets[0].items()]
+    else:
+        log_msg("get_planets cache miss")
+
+
+    with Session(sql_engine) as ses:
+        stmt = select(PlanetsSchemaDB)
+        
+        res = ses.execute(
+            select(
+                WorldsSchemaDB.w, WorldsSchemaDB.h
+            ).where(
+                WorldsSchemaDB.world_id == world_id
+            )
+        ).all()
+        if res:
+            w,h = res[0]
+            logger.warn(f"wid={world_id} w,h={w},{h}")
+        else:
+            logger.warn(f"no {world_id=} found")
+        stmt = stmt.where(PlanetsSchemaDB.world_id == world_id)
+            
+        stmt = stmt.limit(limit).offset(offset)
+
+        planets = ses.scalars(stmt).all()
+
+    # write to cache
+    if res:
+        if r_game.json().get(f"world_{world_id}"):
+            r_game.json().set(
+                f"world_{world_id}",
+                "$.planets",
+                {}
+            )
+        else:
+            r_game.json().set(
+                f"world_{world_id}",
+                "$",
+                {"planets":{}}
+            )
+
+        r_game.json().set(
+            f"world_{world_id}",
+            "$.size",
+            {"w" : w, "h" : h}
+        )
+
+        for p in planets:
+            r_game.json().set(
+                    f"world_{world_id}",
+                    f"$.planets.{p.planet_id}",
+                    p.to_dict(to_str=True)
+                )
+
+    return [p for p in planets]
+
+
+
+
+
+
 @router.get("/{world_id}")
 def get_world(world_id: int):
 
@@ -55,6 +210,9 @@ def get_world(world_id: int):
             status_code = status.HTTP_404_NOT_FOUND,
             detail = f"there is no world with {world_id=}"
         )
+
+
+
 
 
 @router.post("/")

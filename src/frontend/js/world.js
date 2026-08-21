@@ -37,13 +37,13 @@ async function get_world_info() {
 }
 
 async function get_world_planets() {
-    const result = await fetch(base_url + `/api/v1/planets/?world_id=${world_id}`);
+    const result = await fetch(base_url + `/api/v1/worlds/${world_id}/planets`);
     const data = await result.json();
     return data;
 }
 
 async function get_world_miners() {
-    const result = await fetch(base_url + `/api/v1/miners/?world_id=${world_id}`);
+    const result = await fetch(base_url + `/api/v1/worlds/${world_id}/miners`);
     const data = await result.json();
     return data;
 }

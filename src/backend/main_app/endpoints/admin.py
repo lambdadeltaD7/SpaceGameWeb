@@ -114,10 +114,7 @@ def post_generate_world(
     requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
 
     if (str(user_id) != requester_uid) and (not is_admin):
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "you must be an owner or admin to do this"
-        )
+        raise NotOwnerException()
 
     world_seed, world, planets = init_world_db(seed, user_id)
 

@@ -42,18 +42,9 @@ def miner_from_str(m):
 
 @router.get("/")
 def get_miners(
-    world_id: int | None = None,
     limit:   int | None = Query(default=67, ge=0, le=67),
     offset:  int | None = Query(default=0,  ge=0)
 ):
-    # try to get from cache
-    if world_id is not None:
-        cached_miners = r_game.json().get(f"world_{world_id}", "$.miners")
-        if cached_miners:
-            log_msg("get_miners cache hit")
-            return [miner_from_str(m) for m_id,m in cached_miners[0].items()]
-        else:
-            log_msg("get_miners cache miss")
 
     with Session(sql_engine) as ses:
         stmt = select(MinersSchemaDB)
@@ -63,29 +54,6 @@ def get_miners(
         stmt = stmt.limit(limit).offset(offset)
         
         miners = ses.scalars(stmt).all()
-
-    # write to cache
-    if world_id is not None:
-        if r_game.json().get(f"world_{world_id}"):
-            r_game.json().set(
-                f"world_{world_id}",
-                "$.miners",
-                {}
-            )
-        else:
-            r_game.json().set(
-                f"world_{world_id}",
-                "$",
-                {"miners":{}}
-            )
-
-        for m in miners:
-            r_game.json().set(
-                    f"world_{world_id}",
-                    f"$.miners.{m.miner_id}",
-                    m.to_dict()
-                )
-
 
     return [m for m in miners]
 
