@@ -98,14 +98,14 @@ def session_info(session_id: Annotated[str, Depends(get_or_create_session)]):
 
         if user_id == "":
             return {
-                "msg"       : f"(anonimous session) with {session_id=}",
+                "msg"       : f"(anonimous session) your {session_id=}",
                 "is_logged" : False
             }
 
         else:
             user_info = r_sessions.json().get(f"user_info:{user_id}")
             return {
-                "msg"       : f"hi, {user_info["username"]}! with {session_id=}",
+                "msg"       : f"hi, {user_info["username"]}! your {session_id=}",
                 "is_logged" : True,
                 "username"  : user_info["username"],
                 "user_id"   : user_id,
