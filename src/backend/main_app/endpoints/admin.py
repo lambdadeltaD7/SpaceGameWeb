@@ -14,6 +14,7 @@ from db_models import UsersSchemaDB, WorldsSchemaDB, PlanetsSchemaDB
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from exceptions import *
 
 router = APIRouter(prefix="/api/v1/admin")
 
@@ -47,10 +48,7 @@ def kill_session(
     session_id: str
 ):
     if not is_admin:
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "only for admins"
-        )
+        raise OnlyForAdminsException()
 
     user_id = r_sessions.hget(f"ses_{session_id}", "user_id")
     if user_id != "":
@@ -65,10 +63,7 @@ def kill_session(
 def get_sessions(is_admin: Annotated[bool, Depends(check_admin)]):
 
     if not is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail = "only for admins"
-        )
+        raise OnlyForAdminsException()
 
     _, keys = r_sessions.scan(0, "ses_*")
     

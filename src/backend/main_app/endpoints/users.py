@@ -12,6 +12,7 @@ from db_models import UsersSchemaDB, WorldsSchemaDB, PlanetsSchemaDB
 
 from db_connection import sql_engine, r_sessions
 
+from exceptions import *
 
 router = APIRouter(prefix="/api/v1/users")
 
@@ -23,10 +24,7 @@ def get_users(
     offset: int | None = Query(default=0,  ge=0)
 ):  
     if not is_admin:
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "only for admins"
-        )
+        raise OnlyForAdminsException()
 
     with Session(sql_engine) as ses:
         stmt = select(UsersSchemaDB).limit(limit).offset(offset)
@@ -72,10 +70,7 @@ def create_user(
     user: UsersSchemaPD
 ):  
     if not is_admin:
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "only for admins"
-        )
+        raise OnlyForAdminsException()
 
     with Session(sql_engine) as ses:
         user_obj = UsersSchemaDB(**dict(user))
@@ -107,10 +102,7 @@ def edit_user(
         return 200
 
     if not check:
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "only for admins"
-        )
+        raise OnlyForAdminsException()
 
     with Session(sql_engine) as ses:
         stmt = text(f"""
@@ -133,10 +125,7 @@ def delete_user(
     user_id: int
 ):  
     if not is_admin:
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "only for admins"
-        )
+        raise OnlyForAdminsException()
 
     with Session(sql_engine) as ses:
         

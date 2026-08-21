@@ -12,6 +12,7 @@ from db_models import WorldsSchemaDB, PlanetsSchemaDB
 
 from db_connection import sql_engine, r_sessions, r_game
 
+from exceptions import *
 
 router = APIRouter(prefix="/api/v1/worlds")
 
@@ -63,10 +64,7 @@ def create_world(
 ):
 
     if not is_admin:
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "only for admins"
-        )
+        raise OnlyForAdminsException()
 
     with Session(sql_engine) as ses:
         world_obj = WorldsSchemaDB(**dict(world))
@@ -94,10 +92,7 @@ def check_world_ownership(
     
         if world:
             if (str(world.user_id) != requester_uid) and (not is_admin):
-                raise HTTPException(
-                    status_code = status.HTTP_401_UNAUTHORIZED,
-                    detail = "you must be an owner or admin to do this"
-                )
+                raise NotOwnerException()
         else:
             raise HTTPException(
                 status_code = status.HTTP_404_NOT_FOUND,

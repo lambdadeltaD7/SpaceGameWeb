@@ -14,6 +14,8 @@ from db_models import MinersSchemaDB, PlanetsSchemaDB
 
 from db_connection import sql_engine, r_sessions, r_game
 
+from exceptions import *
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/miners")
@@ -119,10 +121,7 @@ def create_miner(
     requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
 
     if (str(miner.user_id) != requester_uid) and (not is_admin):
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "you must be an owner or admin to do this"
-        )
+        raise NotOwnerException()
 
     with Session(sql_engine) as ses:
         stmt = select(
@@ -185,10 +184,7 @@ def check_miner_ownership(
     
         if miner:
             if (str(miner.user_id) != requester_uid) and (not is_admin):
-                raise HTTPException(
-                    status_code = status.HTTP_401_UNAUTHORIZED,
-                    detail = "you must be an owner or admin to do this"
-                )
+                raise NotOwnerException()
         else:
             raise HTTPException(
                 status_code = status.HTTP_404_NOT_FOUND,

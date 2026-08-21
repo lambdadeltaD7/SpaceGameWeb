@@ -15,6 +15,8 @@ from db_models import PlanetsSchemaDB, WorldsSchemaDB
 
 from db_connection import sql_engine, r_sessions, r_game
 
+from exceptions import *
+
 PLANET_ATTACK_COST = 30
 
 router = APIRouter(prefix="/api/v1/planets")
@@ -139,10 +141,7 @@ def create_planet(
 ):
 
     if not is_admin:
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "only for admins"
-        )
+        raise OnlyForAdminsException()
 
     with Session(sql_engine) as ses:
         planet_obj = PlanetsSchemaDB(**dict(planet))
@@ -171,10 +170,7 @@ def check_planet_ownership(
     
         if planet:
             if (str(planet.user_id) != requester_uid) and (not is_admin):
-                raise HTTPException(
-                    status_code = status.HTTP_401_UNAUTHORIZED,
-                    detail = "you must ba an owner or admin to do this"
-                )
+                raise NotOwnerException()
         else:
             raise HTTPException(
                 status_code = status.HTTP_404_NOT_FOUND,
