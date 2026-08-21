@@ -5,6 +5,8 @@ import logging
 from sqlalchemy.orm import Session
 from sqlalchemy import select, delete, text
 
+from endpoints.miners import miner_from_str
+from endpoints.planets import planet_from_str
 from endpoints.admin import check_admin
 from endpoints.auth import get_or_create_session
 from fastapi import APIRouter, HTTPException, status, Depends, Query
@@ -26,30 +28,6 @@ def log_msg(txt):
     print(txt)
     print('#'*64)
     print('#'*64)
-
-
-
-def miner_from_str(m):
-    return {
-        "miner_id": int(m["miner_id"]),
-        "world_id": int(m["world_id"]),
-        "user_id": int(m["user_id"]),
-        "x": int(m["x"]),
-        "y": int(m["y"]),
-    }
-    
-
-def planet_from_str(p):
-    return {
-        "planet_id": int(p["planet_id"]),
-        "world_id": int(p["world_id"]),
-        "user_id": int(p["user_id"]),
-        "res1": int(p["res1"]),
-        "res2": int(p["res2"]),
-        "x": int(p["x"]),
-        "y": int(p["y"]),
-        "shield_on": p["shield_on"] == "True"
-    }
 
 
 @router.get("/")
