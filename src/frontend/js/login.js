@@ -22,8 +22,7 @@ async function init(){
     }
 }
 
-
-login_btn.addEventListener('click', async () => {
+async function try_login(){
     const user_obj = {
         "user_name" : username_input.value,
         "user_password" : password_input.value
@@ -51,13 +50,25 @@ login_btn.addEventListener('click', async () => {
         window.location.href = base_url;
     }
 
-});
+}
 
+
+
+login_btn.addEventListener('click', async () => {await try_login();});
 
 register_btn.addEventListener('click', async () => {
     window.location.href = base_url + "/registration";
 });
 
+document.addEventListener('keydown', async function(event){
+    if(event.key == "Enter"){
+        await try_login();
+    }
+    if(event.key == "Escape"){
+        username_input.value = "";
+        password_input.value = "";
+    }
+});
 
 queueMicrotask(async () => {await init();});
 
