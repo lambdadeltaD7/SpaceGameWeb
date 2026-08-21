@@ -25,17 +25,17 @@
         <p id="online_info_text" class="status-text"></p>
 
         <div class="button-section top-section">
-            <div class="button-group-inner border-separator">
+            <div id="login_wrap" class="button-group-inner border-separator">
                 <button id="login_button" class="btn" style="display: none;">Login</button>
                 <p class="button-desc">Access your account to manage your empire</p>
             </div>
 
-            <div class="button-group-inner border-separator">
+            <div id="register_wrap" class="button-group-inner border-separator">
                 <button id="register_button" class="btn" style="display: none;">Register</button>
                 <p class="button-desc">Create a new account to start your journey</p>
             </div>
 
-            <div class="button-group-inner">
+            <div id="logout_wrap" class="button-group-inner">
                 <button id="logout_button" class="btn btn-secondary" style="display: none;">Logout</button>
                 <p class="button-desc">Sign out of your current session</p>
             </div>
@@ -54,16 +54,13 @@
                 <p class="button-desc">Browse and explore the available worlds in the galaxy</p>
             </div>
 
-            <div class="button-group-inner border-separator">
-                <input id="world_seed_input" class="form-input" style="display: none;" placeholder="Enter world seed"></input>
-            </div>
-
-            <div class="button-group-inner border-separator">
+            <div id="gen_world_wrap" class="button-group-inner border-separator">
                 <button id="world_gen_btn" class="btn btn-secondary" style="display: none;">Generate World</button>
+                <input id="world_seed_input" class="form-input" style="display: none;" placeholder="Enter world seed"></input>
                 <p class="button-desc">Create a new world using the specified seed</p>
             </div>
 
-            <div class="button-group-inner">
+            <div id="attack_wrap" class="button-group-inner">
                 <button id="attack_btn" class="btn btn-secondary" style="display: none;">Attack Users</button>
                 <p class="button-desc">View and attack other player worlds</p>
             </div>
