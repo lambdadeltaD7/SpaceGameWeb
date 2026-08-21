@@ -28,21 +28,26 @@ async function refresh_sessions(){
     const hdr_el = document.createElement("h2");
     hdr_el.textContent = "Sessions:"
     sessions_list.append(hdr_el);
-    
+
     const refresh_btn = document.createElement('button');
+    refresh_btn.type = 'button';
+    refresh_btn.className = 'admin-btn';
     refresh_btn.addEventListener('click', async () => {await refresh_sessions();});
     refresh_btn.textContent = "refresh sessions";
     sessions_list.append(refresh_btn);
 
     for(const ses of sessions_data){
         const ses_card = document.createElement('div')
-        ses_card.style = "display: flex; flex-direction: row";
+        ses_card.className = 'admin-item';
 
         const ses_info = document.createElement('p');
+        ses_info.className = 'admin-item-info';
         ses_info.textContent = JSON.stringify(ses, null, 2);
         ses_card.append(ses_info);
 
         const kill_btn = document.createElement('button');
+        kill_btn.type = 'button';
+        kill_btn.className = 'admin-btn';
         kill_btn.textContent = "kill session";
         kill_btn.addEventListener('click', async () => {
             await fetch(
@@ -53,7 +58,11 @@ async function refresh_sessions(){
             );
             await refresh_sessions();
         });
-        ses_card.append(kill_btn);
+
+        const btn_container = document.createElement('div');
+        btn_container.className = 'button-container';
+        btn_container.append(kill_btn);
+        ses_card.append(btn_container);
 
         sessions_list.append(ses_card);
     }
@@ -73,19 +82,24 @@ async function refresh_users(){
     users_list.append(hdr_el);
 
     const refresh_btn = document.createElement('button');
+    refresh_btn.type = 'button';
+    refresh_btn.className = 'admin-btn';
     refresh_btn.addEventListener('click', async () => {await refresh_users();});
     refresh_btn.textContent = "refresh users";
     users_list.append(refresh_btn);
 
     for(const usr of users_data){
         const usr_card = document.createElement('div')
-        usr_card.style = "display: flex; flex-direction: row";
+        usr_card.className = 'admin-item';
 
         const usr_info = document.createElement('p');
+        usr_info.className = 'admin-item-info';
         usr_info.textContent = JSON.stringify(usr, null, 2);
         usr_card.append(usr_info);
 
         const kill_btn = document.createElement('button');
+        kill_btn.type = 'button';
+        kill_btn.className = 'admin-btn';
         kill_btn.textContent = "delete user";
         kill_btn.addEventListener('click', async () => {
             await fetch(
@@ -96,9 +110,10 @@ async function refresh_users(){
             );
             await refresh_users();
         });
-        usr_card.append(kill_btn);
 
         const change_is_admin_btn = document.createElement('button');
+        change_is_admin_btn.type = 'button';
+        change_is_admin_btn.className = 'admin-btn';
         change_is_admin_btn.textContent = "change is_admin";
         change_is_admin_btn.addEventListener('click', async () => {
             await fetch(
@@ -110,7 +125,11 @@ async function refresh_users(){
             await refresh_users();
             await refresh_sessions();
         });
-        usr_card.append(change_is_admin_btn);
+
+        const btn_container = document.createElement('div');
+        btn_container.className = 'button-container';
+        btn_container.append(kill_btn, change_is_admin_btn);
+        usr_card.append(btn_container);
 
         users_list.append(usr_card);
     }
@@ -130,19 +149,24 @@ async function refresh_transactions(){
     transactions_list.append(hdr_el);
 
     const refresh_btn = document.createElement('button');
+    refresh_btn.type = 'button';
+    refresh_btn.className = 'admin-btn';
     refresh_btn.addEventListener('click', async () => {await refresh_transactions();});
     refresh_btn.textContent = "refresh transactions";
     transactions_list.append(refresh_btn);
 
     for(const trans of transactions_data){
         const trans_card = document.createElement('div')
-        trans_card.style = "display: flex; flex-direction: row";
+        trans_card.className = 'admin-item';
 
         const trans_info = document.createElement('p');
+        trans_info.className = 'admin-item-info';
         trans_info.textContent = JSON.stringify(trans, null, 2);
         trans_card.append(trans_info);
 
         const kill_btn = document.createElement('button');
+        kill_btn.type = 'button';
+        kill_btn.className = 'admin-btn';
         kill_btn.textContent = "undo transaction";
         kill_btn.addEventListener('click', async () => {
             await fetch(
@@ -153,7 +177,11 @@ async function refresh_transactions(){
             );
             await refresh_transactions();
         });
-        trans_card.append(kill_btn);
+
+        const btn_container = document.createElement('div');
+        btn_container.className = 'button-container';
+        btn_container.append(kill_btn);
+        trans_card.append(btn_container);
 
         transactions_list.append(trans_card);
     }

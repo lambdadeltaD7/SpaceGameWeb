@@ -34,18 +34,22 @@ async function attack_world(world_id) {
 }
 
 
-async function handle_world(wrld, txt_el, info, world_card, user_id){    
+async function handle_world(wrld, txt_el, info, world_card, user_id){
     const attack_btn = document.createElement('button');
+    attack_btn.type = 'button';
+    attack_btn.className = 'attack-card-btn';
     attack_btn.addEventListener('click', async () => {
         await attack_world(wrld.world_id);
     });
     attack_btn.textContent = 'attack';
 
+    const btn_container = document.createElement('div');
+    btn_container.className = 'button-container';
+    btn_container.append(attack_btn);
 
     world_card.append(txt_el);
-    world_card.append(attack_btn);
+    world_card.append(btn_container);
 }
-
 
 async function render_worlds(){
     const res = await init();
@@ -66,8 +70,9 @@ async function render_worlds(){
         info += `seed: ${wrld.seed}`;
 
         const world_card = document.createElement('div');
-        world_card.style = 'display: flex; margin: 10px; border: solid black 5px;';
+        world_card.className = 'attack-card';
         const txt_el = document.createElement('p');
+        txt_el.className = 'attack-card-info';
         txt_el.textContent = info;
 
         if( (wrld.user_id != user_id) && wrld.is_public ){

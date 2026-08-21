@@ -25,6 +25,7 @@ const gen_world_wrap = document.getElementById('gen_world_wrap');
 const attack_wrap = document.getElementById('attack_wrap');
 const login_wrap = document.getElementById('login_wrap');
 const register_wrap = document.getElementById('register_wrap');
+const transactions_wrap = document.getElementById('transactions_wrap');
 
 
 const ONLINE_INFO_UPDATE_FREQ = 3000;
@@ -47,6 +48,7 @@ async function init(){
         logout_wrap.style.display = "flex";
         gen_world_wrap.style.display = "flex";
         attack_wrap.style.display = "flex";
+        transactions_wrap.style.display = "flex";
         login_wrap.style.display = "none";
         register_wrap.style.display = "none";
         user_id = data.user_id;
@@ -63,6 +65,7 @@ async function init(){
         logout_wrap.style.display = "none";
         gen_world_wrap.style.display = "none";
         attack_wrap.style.display = "none";
+        transactions_wrap.style.display = "none";
     }
 
 }

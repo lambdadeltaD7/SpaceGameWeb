@@ -65,41 +65,54 @@ async function case_authorized(wrld, txt_el, info, world_card, user_id){
     if(wrld.user_id==user_id){
         txt_el.textContent = "[yours] " + info;
     }
-    
+
     const check_btn = document.createElement('button');
+    check_btn.type = 'button';
+    check_btn.className = 'world-card-btn';
     check_btn.addEventListener('click', async () => {
         await checkout_world(wrld.world_id);
     });
     check_btn.textContent = 'check it out';
 
     const del_btn = document.createElement('button');
+    del_btn.type = 'button';
+    del_btn.className = 'world-card-btn';
     del_btn.addEventListener('click', async () => {
         await del_world(wrld.world_id);
     });
     del_btn.textContent = 'delete world';
-    
+
     const ch_vis_btn = document.createElement('button');
+    ch_vis_btn.type = 'button';
+    ch_vis_btn.className = 'world-card-btn';
     ch_vis_btn.addEventListener('click', async () => {
         await change_world_visibility(wrld.world_id);
     });
     ch_vis_btn.textContent = 'change visibility';
 
+    const btn_container = document.createElement('div');
+    btn_container.className = 'button-container';
+    btn_container.append(check_btn, del_btn, ch_vis_btn);
+
     world_card.append(txt_el);
-    world_card.append(check_btn);
-    world_card.append(del_btn);
-    world_card.append(ch_vis_btn);
+    world_card.append(btn_container);
 }
 
 
 async function case_not_authorized(wrld, txt_el, world_card){
     if(wrld.is_public){
         const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'world-card-btn';
         btn.textContent = 'check it out';
         btn.addEventListener('click', async () => {
             await checkout_world(wrld.world_id);
         });
+        const btn_container = document.createElement('div');
+        btn_container.className = 'button-container';
+        btn_container.append(btn);
         world_card.append(txt_el);
-        world_card.append(btn);
+        world_card.append(btn_container);
     }
     else{
         world_card.append(txt_el);
@@ -124,8 +137,9 @@ async function render_worlds(){
         info += `seed: ${wrld.seed}`;
 
         const world_card = document.createElement('div');
-        world_card.style = 'display: flex; margin: 10px; border: solid black 5px;';
+        world_card.className = 'world-card';
         const txt_el = document.createElement('p');
+        txt_el.className = 'world-card-info';
         txt_el.textContent = info;
 
         if(wrld.user_id==user_id || is_admin){

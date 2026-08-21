@@ -27,6 +27,7 @@ async function update_transactions() {
 
     for(const tr of tr_d){
         const el = document.createElement('p');
+        el.className = 'transaction-card';
         el.textContent = JSON.stringify(tr, null, 2);
         transactions_list.append(el);
     }

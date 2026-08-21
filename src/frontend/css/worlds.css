@@ -61,6 +61,9 @@
     border: 1px solid var(--worlds-border);
     border-radius: 8px;
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .world-card.top-card {
@@ -87,4 +90,20 @@
 
 .world-card-info span {
     color: var(--worlds-accent);
+}
+
+.world-card-btn {
+    background-color: var(--worlds-accent);
+    color: var(--worlds-bg);
+    border: 1px solid var(--worlds-accent-light);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.world-card-btn:hover {
+    background-color: var(--worlds-accent-light);
+    border-color: var(--worlds-accent-light);
 }
