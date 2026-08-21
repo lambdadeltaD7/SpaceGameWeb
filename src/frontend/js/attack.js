@@ -51,7 +51,7 @@ async function get_world_miners() {
 
 
 async function init() {
-    world_id = await cookieStore.get('world_id');
+    world_id = await cookieStore.get('attack_world_id');
     world_id = world_id.value;
 
     const world_info = await get_world_info();
@@ -144,88 +144,7 @@ function render_cell(grid, p_dict, m_dict, i, j){
 
 function init_space_cell(curr_cell, i, j){
     curr_cell.className = 'space-cell';
-    curr_cell.addEventListener('click', () => {on_mouse_click_space(i, j)});
 }
-
-
-
-async function on_mouse_click_space(i, j){
-
-    var add_miner_dialog = init_add_miner_dialog(i, j);
-    const add_miner_dialog_btn_ok = document.createElement('button');
-    const add_miner_dialog_btn_cancel = document.createElement('button');
-
-    add_miner_dialog_btn_ok.textContent = 'add miner';
-    add_miner_dialog_btn_cancel.textContent = 'cancel';
-
-    add_miner_dialog.append(add_miner_dialog_btn_ok);
-    add_miner_dialog.append(add_miner_dialog_btn_cancel);
-
-    add_miner_dialog_btn_ok.addEventListener('click', async () => {
-        await add_miner_dialog_btn_ok_callable(add_miner_dialog, i, j);
-    });
-
-    add_miner_dialog_btn_cancel.addEventListener('click', () => {
-        add_miner_dialog.style.display = "none";
-        document.getElementById(add_miner_dialog.id).remove();
-    });
-
-    document.getElementById('doc_body').append(add_miner_dialog);
-}
-
-function init_add_miner_dialog(i, j){
-    var add_miner_dialog = document.createElement('div');
-    add_miner_dialog.id = `add_miner_dialog_id_${world_id}_${i}_${j}`;
-    
-    add_miner_dialog.style =
-        "position: absolute; top: 10%;" +
-        "left: 30%; border: solid black 5px; flex-direction: column;" +
-        "background-color: cadetblue; color: black;";
-
-    const add_miner_dialog_txt = document.createElement('p');
-
-    add_miner_dialog_txt.textContent = `do you want to add new miner to (x,y)=(${j},${i})?`;
-    add_miner_dialog_txt.textContent += 'you will spend N res1!!!';
-    add_miner_dialog.append(add_miner_dialog_txt);
-   
-    return add_miner_dialog;
-}
-
-async function add_miner_dialog_btn_ok_callable(add_miner_dialog, i, j){
-
-
-    const miner_obj = {
-        "world_id": world_id,
-        "user_id": curr_world_info.user_id,
-        "x" : j,
-        "y" : i
-    };
-    
-    console.log(`miner=${miner_obj}`);
-
-    const result = await fetch(
-        base_url + '/api/v1/miners/',
-            {
-                method: 'POST',
-                headers:{
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(miner_obj)
-            }
-    );
-
-    if(result.ok){
-        document.getElementById(add_miner_dialog.id).style.display="none";
-        document.getElementById(add_miner_dialog.id).remove();
-        await init();
-    }
-    else{
-        const data = await result.json();
-        showErr(data.detail);
-        document.getElementById(add_miner_dialog.id).remove();
-    }
-} 
-
 
 
 
@@ -251,72 +170,63 @@ function on_mouse_leave_planet(){
 
 async function on_mouse_click_planet(planet_info){
 
-    var shield_dialog = init_shield_dialog(planet_info);
-    const shield_dialog_btn_ok = document.createElement('button');
-    const shield_dialog_btn_cancel = document.createElement('button');
+    var attack_planet_dialog = init_attack_planet_dialog(planet_info);
+    const attack_planet_dialog_btn_ok = document.createElement('button');
+    const attack_planet_dialog_btn_cancel = document.createElement('button');
 
-    shield_dialog_btn_ok.textContent = 'change shield status';
-    shield_dialog_btn_cancel.textContent = 'cancel';
+    attack_planet_dialog_btn_ok.textContent = 'attack planet';
+    attack_planet_dialog_btn_cancel.textContent = 'cancel';
 
-    shield_dialog.append(shield_dialog_btn_ok);
-    shield_dialog.append(shield_dialog_btn_cancel);
+    attack_planet_dialog.append(attack_planet_dialog_btn_ok);
+    attack_planet_dialog.append(attack_planet_dialog_btn_cancel);
 
-    shield_dialog_btn_ok.addEventListener('click', async () => {
-        await shield_dialog_btn_ok_callable(shield_dialog, planet_info);
+    attack_planet_dialog_btn_ok.addEventListener('click', async () => {
+        await attack_planet_dialog_btn_ok_callable(attack_planet_dialog, planet_info);
     });
 
-    shield_dialog_btn_cancel.addEventListener('click', () => {
-        shield_dialog.style.display = "none";
-        document.getElementById(shield_dialog.id).remove();
+    attack_planet_dialog_btn_cancel.addEventListener('click', () => {
+        attack_planet_dialog.style.display = "none";
+        document.getElementById(attack_planet_dialog.id).remove();
     });
 
-    document.getElementById('doc_body').append(shield_dialog);
+    document.getElementById('doc_body').append(attack_planet_dialog);
 }
 
-function init_shield_dialog(planet_info){
-    var shield_dialog = document.createElement('div');
-    shield_dialog.id = `shield_dialog_id_${planet_info.planet_id}`;
+function init_attack_planet_dialog(planet_info){
+    var attack_planet_dialog = document.createElement('div');
+    attack_planet_dialog.id = `attack_planet_dialog_id_${planet_info.planet_id}`;
     
-    shield_dialog.style =
+    attack_planet_dialog.style =
         "position: absolute; top: 10%;" +
         "left: 30%; border: solid black 5px; flex-direction: column;" +
         "background-color: cadetblue; color: black;";
 
-    const shield_dialog_txt = document.createElement('p');
+    const attack_planet_dialog_txt = document.createElement('p');
 
-    shield_dialog_txt.textContent = `shield menu for planet_id=${planet_info.planet_id}\n`;
-
-    if(planet_info.shield_on){
-        shield_dialog_txt.textContent += 'right now shield is active\n';
-    }
-    else{
-        shield_dialog_txt.textContent += 'right now shield is NOT active\n';
-    }
-    shield_dialog_txt.textContent += 'when active shield consumes N res1 per sec\n';
-    shield_dialog_txt.textContent += 'change shield status?\n';
-    shield_dialog.append(shield_dialog_txt);
+    attack_planet_dialog_txt.textContent = `attack planet_id=${planet_info.planet_id}?\n`;
+    attack_planet_dialog_txt.textContent += 'it costs N res2\n';
+    attack_planet_dialog.append(attack_planet_dialog_txt);
    
-
-    return shield_dialog;
+    return attack_planet_dialog;
 }
 
-async function shield_dialog_btn_ok_callable(shield_dialog, planet_info){
+async function attack_planet_dialog_btn_ok_callable(attack_planet_dialog, planet_info){
     const result = await fetch(
-    base_url + `/api/v1/planets/${planet_info.planet_id}?shield_on=${!planet_info.shield_on}`,
+    base_url + `/api/v1/planets/${planet_info.planet_id}/attack?world_id=${world_id}`,
         {
-            method: 'PATCH',
+            method: 'DELETE',
         }
     );
 
     if(result.ok){
-        document.getElementById(shield_dialog.id).style.display="none";
-        document.getElementById(shield_dialog.id).remove();
+        document.getElementById(attack_planet_dialog.id).style.display="none";
+        document.getElementById(attack_planet_dialog.id).remove();
         await init();
     }
     else{
         const data = await result.json();
         showErr(data.detail);
-        document.getElementById(shield_dialog.id).remove();
+        document.getElementById(attack_planet_dialog.id).remove();
     }
 } 
 
@@ -342,66 +252,65 @@ function on_mouse_leave_miner(){
 }
 
 async function on_mouse_click_miner(miner_info){
-
-    var sell_miner_dialog = init_sell_miner_dialog(miner_info);
+    var attack_miner_dialog = init_attack_miner_dialog(miner_info);
     const sell_miner_dialog_btn_ok = document.createElement('button');
     const sell_miner_dialog_btn_cancel = document.createElement('button');
 
-    sell_miner_dialog_btn_ok.textContent = 'sell miner';
+    sell_miner_dialog_btn_ok.textContent = 'attack miner';
     sell_miner_dialog_btn_cancel.textContent = 'cancel';
 
-    sell_miner_dialog.append(sell_miner_dialog_btn_ok);
-    sell_miner_dialog.append(sell_miner_dialog_btn_cancel);
+    attack_miner_dialog.append(sell_miner_dialog_btn_ok);
+    attack_miner_dialog.append(sell_miner_dialog_btn_cancel);
 
     sell_miner_dialog_btn_ok.addEventListener('click', async () => {
-        await sell_miner_dialog_btn_ok_callable(sell_miner_dialog, miner_info);
+        await attack_miner_dialog_btn_ok_callable(attack_miner_dialog, miner_info);
     });
 
     sell_miner_dialog_btn_cancel.addEventListener('click', () => {
-        sell_miner_dialog.style.display = "none";
-        document.getElementById(sell_miner_dialog.id).remove();
+        attack_miner_dialog.style.display = "none";
+        document.getElementById(attack_miner_dialog.id).remove();
     });
 
-    document.getElementById('doc_body').append(sell_miner_dialog);
+    document.getElementById('doc_body').append(attack_miner_dialog);
 }
 
-function init_sell_miner_dialog(miner_info){
-    var sell_miner_dialog = document.createElement('div');
-    sell_miner_dialog.id = `sell_miner_dialog_id_${miner_info.miner_id}`;
+function init_attack_miner_dialog(miner_info){
+    var attack_miner_dialog = document.createElement('div');
+    attack_miner_dialog.id = `attack_miner_dialog_id_${miner_info.miner_id}`;
     
-    sell_miner_dialog.style =
+    attack_miner_dialog.style =
         "position: absolute; top: 10%;" +
         "left: 30%; border: solid black 5px; flex-direction: column;" +
         "background-color: cadetblue; color: black;";
 
-    const sell_miner_dialog_txt = document.createElement('p');
+    const attack_miner_dialog_txt = document.createElement('p');
 
-    sell_miner_dialog_txt.textContent = `sell miner_id=${miner_info.miner_id}\n`;
-    sell_miner_dialog_txt.textContent += 'you will get half the buy price after it';
-    sell_miner_dialog_txt.textContent += 'confirm?\n';
+    attack_miner_dialog_txt.textContent = `attack miner_id=${miner_info.miner_id}\n`;
+    attack_miner_dialog_txt.textContent += 'it costs N res2';
+    attack_miner_dialog_txt.textContent += 'confirm?\n';
 
-    sell_miner_dialog.append(sell_miner_dialog_txt);
+    attack_miner_dialog.append(attack_miner_dialog_txt);
    
-    return sell_miner_dialog;
+    return attack_miner_dialog;
 }
 
-async function sell_miner_dialog_btn_ok_callable(sell_miner_dialog, miner_info){
+async function attack_miner_dialog_btn_ok_callable(attack_miner_dialog, miner_info){
     const result = await fetch(
-    base_url + `/api/v1/miners/${miner_info.miner_id}`,
+    base_url + `/api/v1/miners/${miner_info.miner_id}/attack?world_id=${world_id}`,
         {
             method: 'DELETE',
         }
     );
 
     if(result.ok){
-        document.getElementById(sell_miner_dialog.id).style.display="none";
-        document.getElementById(sell_miner_dialog.id).remove();
+        document.getElementById(attack_miner_dialog.id).style.display="none";
+        document.getElementById(attack_miner_dialog.id).remove();
         await init();
     }
     else{
         const data = await result.json();
         showErr(data.detail);
-        document.getElementById(sell_miner_dialog.id).remove();
+        document.getElementById(attack_miner_dialog.id).remove();
     }
 } 
 

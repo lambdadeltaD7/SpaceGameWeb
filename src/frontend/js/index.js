@@ -5,6 +5,8 @@ import {
     base_url
 } from "./utils.js"
 
+const attack_btn = document.getElementById('attack_btn');
+
 const login_button = document.getElementById('login_button');
 const register_button = document.getElementById('register_button');
 const logout_button = document.getElementById('logout_button');
@@ -35,6 +37,7 @@ async function init(){
         logout_button.style.display = "block";
         world_seed_input.style.display = "block";
         world_gen_btn.style.display = "block";
+        attack_btn.style.display = "block";
         user_id = data.user_id;
     }
     else{
@@ -43,6 +46,7 @@ async function init(){
         logout_button.style.display = "none";
         world_seed_input.style.display = "none";
         world_gen_btn.style.display = "none";
+        attack_btn.style.display = "none";
     }
 
 }
@@ -99,6 +103,10 @@ world_gen_btn.addEventListener('click', async () => {
 
 goto_transactions_btn.addEventListener('click', () => {
     window.location.href = base_url + "/transactions";
+});
+
+attack_btn.addEventListener('click', () => {
+    window.location.href = base_url + "/attacks";
 });
 
 

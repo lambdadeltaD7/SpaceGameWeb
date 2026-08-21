@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/miners")
 
 MINER_BUY_PRICE = 20
+MINER_ATTACK_COST = MINER_BUY_PRICE
 
 def log_msg(txt):
     print('#'*64)
@@ -195,6 +196,51 @@ def check_miner_ownership(
             )
 
     return miner
+
+
+@router.delete("/{miner_id}/attack")
+def attack_miner(
+    session_id: Annotated[str, Depends(get_or_create_session)],
+    miner_id: int,
+    world_id: int
+):
+    requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
+
+    if requester_uid == "":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="you must be logged in to do this"
+        )
+
+    with Session(sql_engine) as ses:
+        update_user_balance(
+            user_id = int(requester_uid),
+            db_session = ses,
+            delta_res1 = 0,
+            delta_res2 = (-1) * MINER_ATTACK_COST
+        )
+        ses.commit()
+
+    try:
+        r_game.json().delete(
+            f"world_{world_id}",
+            f"$.miners.{miner_id}"
+        )
+    except Exception as ex:
+        logger.error(f"err while attacking miner_id={miner_id} from cache: {ex}")
+
+    with Session(sql_engine) as ses:
+        m_stmt = delete(
+                    MinersSchemaDB
+                ).where(
+                    MinersSchemaDB.miner_id == miner_id
+                )
+        m_result = ses.execute(m_stmt)
+        ses.commit()
+    
+
+    return {"log": f"destroyed {m_result.rowcount} miners"}
+
 
 
 @router.delete("/{miner_id}")

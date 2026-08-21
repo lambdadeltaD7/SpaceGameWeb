@@ -3,8 +3,9 @@ import logging
 from typing import Annotated
 
 from sqlalchemy.orm import Session
-from sqlalchemy import select, delete, text
+from sqlalchemy import select, delete, text, update
 
+from endpoints.transactions import update_user_balance
 from endpoints.admin import check_admin
 from endpoints.auth import get_or_create_session
 from fastapi import APIRouter, HTTPException, status, Depends, Query
@@ -14,6 +15,7 @@ from db_models import PlanetsSchemaDB, WorldsSchemaDB
 
 from db_connection import sql_engine, r_sessions, r_game
 
+PLANET_ATTACK_COST = 30
 
 router = APIRouter(prefix="/api/v1/planets")
 
@@ -223,6 +225,97 @@ def edit_planet(
         ses.commit()
     
     return 201
+
+
+
+
+
+@router.delete("/{planet_id}/attack")
+def attack_planet(
+    session_id: Annotated[str, Depends(get_or_create_session)],
+    planet_id: int,
+    world_id: int
+):
+    requester_uid = r_sessions.hget(f"ses_{session_id}", "user_id")
+
+    if requester_uid == "":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="you must be logged in to do this"
+        )
+
+    with Session(sql_engine) as ses:
+        update_user_balance(
+            user_id = int(requester_uid),
+            db_session = ses,
+            delta_res1 = 0,
+            delta_res2 = (-1) * PLANET_ATTACK_COST
+        )
+        ses.commit()
+
+    
+    try:
+        planet = r_game.json().get(
+            f"world_{world_id}",
+            f"$.planets.{planet_id}"
+        )
+        if planet:
+            planet = planet[0]
+            if planet["shield_on"]=="True":
+                r_game.json().set(
+                    f"world_{world_id}",
+                    f"$.planets.{planet_id}.shield_on",
+                    "False"
+                )
+                logger.warn(f"destroyed shield on pid={planet_id} in cache")
+            else:
+                r_game.json().delete(
+                    f"world_{world_id}",
+                    f"$.planets.{planet_id}"
+                )
+                with Session(sql_engine) as ses:
+                    stmt = delete(
+                                PlanetsSchemaDB
+                            ).where(
+                                PlanetsSchemaDB.planet_id == planet_id
+                            )
+                    result = ses.execute(stmt)
+                    ses.commit()
+                logger.warn(f"destroyed pid={planet_id} in cache")
+        else:
+            with Session(sql_engine) as ses:
+                stmt = select(
+                        PlanetsSchemaDB 
+                    ).where(
+                        PlanetsSchemaDB.planet_id == planet_id
+                    )
+                planet = ses.scalar(stmt)
+                
+                if planet.shield_on:
+                    stmt = update(
+                                PlanetsSchemaDB
+                            ).where(
+                                PlanetsSchemaDB.planet_id == planet_id
+                            ).values(
+                                shield_on = False
+                            )
+                    result = ses.execute(stmt)
+                    ses.commit()
+                else:
+                    stmt = delete(
+                                PlanetsSchemaDB
+                            ).where(
+                                PlanetsSchemaDB.planet_id == planet_id
+                            )
+                    result = ses.execute(stmt)
+                    ses.commit()
+
+    except Exception as ex:
+        logger.error(f"err while attacking planet_id={planet.planet_id} in cache: {ex}")
+
+    
+
+    return {"log": "done"}
 
 
 @router.delete("/{planet_id}")
