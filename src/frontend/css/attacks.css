@@ -1,0 +1,88 @@
+:root {
+    --attacks-bg: #0a0a1a;
+    --attacks-card-bg: #1a1a2e;
+    --attacks-text: #e0e0e0;
+    --attacks-text-secondary: #a0a0b0;
+    --attacks-border: #3a3a5c;
+    --attacks-accent: #4a6fa5;
+    --attacks-accent-light: #5a7fc0;
+}
+
+.attacks-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.attacks-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.attacks-title {
+    font-size: 2rem;
+    color: var(--attacks-text);
+    margin-bottom: 0.5rem;
+}
+
+.attacks-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.reload-attacks-btn {
+    background-color: var(--attacks-accent);
+    color: var(--attacks-bg);
+    border: 1px solid var(--attacks-accent-light);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.reload-attacks-btn:hover {
+    background-color: var(--attacks-accent-light);
+    border-color: var(--attacks-accent-light);
+}
+
+.attack-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.attack-card {
+    background-color: var(--attacks-card-bg);
+    border: 1px solid var(--attacks-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.attack-card.top-card {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.attack-card.bottom-card {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.attack-card-title {
+    font-size: 1.25rem;
+    color: var(--attacks-text);
+    margin-bottom: 0.5rem;
+}
+
+.attack-card-info {
+    color: var(--attacks-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.attack-card-info span {
+    color: var(--attacks-accent);
+}

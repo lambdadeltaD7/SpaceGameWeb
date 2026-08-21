@@ -1,0 +1,152 @@
+:root {
+    --trans-bg: #0a0a1a;
+    --trans-card-bg: #1a1a2e;
+    --trans-text: #e0e0e0;
+    --trans-text-secondary: #a0a0b0;
+    --trans-border: #3a3a5c;
+    --trans-accent: #4a6fa5;
+    --trans-accent-light: #5a7fc0;
+    --trans-input-bg: #2a2a3e;
+}
+
+.transactions-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.transactions-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.balance-card {
+    background-color: var(--trans-card-bg);
+    border: 1px solid var(--trans-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.balance-card.top-card {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.balance-title {
+    font-size: 1.25rem;
+    color: var(--trans-text);
+    margin-bottom: 0.5rem;
+}
+
+.balance-amount {
+    font-size: 1.5rem;
+    color: var(--trans-accent);
+}
+
+.create-transaction-card {
+    background-color: var(--trans-card-bg);
+    border: 1px solid var(--trans-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.create-transaction-title {
+    font-size: 1.25rem;
+    color: var(--trans-text);
+    margin-bottom: 1rem;
+}
+
+.transaction-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.transaction-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-row .form-input {
+    flex: 1;
+}
+
+.form-input {
+    background-color: var(--trans-input-bg);
+    border: 1px solid var(--trans-border);
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    color: var(--trans-text);
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--trans-accent-light);
+}
+
+.form-input::placeholder {
+    color: var(--trans-text-secondary);
+}
+
+.transaction-btn {
+    background-color: var(--trans-accent);
+    color: var(--trans-bg);
+    border: 1px solid var(--trans-accent-light);
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.transaction-btn:hover {
+    background-color: var(--trans-accent-light);
+    border-color: var(--trans-accent-light);
+}
+
+.transactions-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.reload-transactions-btn {
+    background-color: var(--trans-input-bg);
+    color: var(--trans-text);
+    border: 1px solid var(--trans-border);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.reload-transactions-btn:hover {
+    background-color: var(--trans-accent);
+    color: var(--trans-bg);
+    border-color: var(--trans-accent-light);
+}
+
+.transaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.transaction-card {
+    background-color: var(--trans-card-bg);
+    border: 1px solid var(--trans-border);
+    border-radius: 8px;
+    padding: 1rem;
+}

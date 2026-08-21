@@ -8,30 +8,67 @@
 
     <script type="module" src="../js/index.js" defer></script>
     <script src="../js/sweetalert2.js" defer></script>
-    
+
     <link rel="stylesheet" href="css/sweetalert2.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/index.css">
 
 </head>
 
 <body>
-    
-    <p id="online_info_text"></p>
-    <button id="login_button" style="display: none;">goto login</button>
-    <button id="register_button" style="display: none;">goto registration</button>
-    <button id="logout_button" style="display: none;">logout</button>
-    <p id="status_text"></p>
-    <br>
+    <div class="index-container">
+        <div class="index-header">
+            <h1 class="index-title">Space Game</h1>
+            <p class="index-subtitle">Command your empire in the galaxy</p>
+        </div>
 
-    <button id="goto_transactions_btn">goto transactions</button>
-    <br>
+        <p id="online_info_text" class="status-text"></p>
 
-    <button id="worlds_btn"> goto worlds </button>
-    <br>
+        <div class="button-section top-section">
+            <div class="button-group-inner border-separator">
+                <button id="login_button" class="btn" style="display: none;">Login</button>
+                <p class="button-desc">Access your account to manage your empire</p>
+            </div>
 
-    <input id="world_seed_input" style="display: none;"></input>
-    <button id="world_gen_btn" style="display: none;">gen_world</button>
-    <button id="attack_btn" style="display: none;">attack users</button>
+            <div class="button-group-inner border-separator">
+                <button id="register_button" class="btn" style="display: none;">Register</button>
+                <p class="button-desc">Create a new account to start your journey</p>
+            </div>
 
+            <div class="button-group-inner">
+                <button id="logout_button" class="btn btn-secondary" style="display: none;">Logout</button>
+                <p class="button-desc">Sign out of your current session</p>
+            </div>
+        </div>
+
+        <p id="status_text" class="status-text"></p>
+
+        <div class="button-section bottom-section">
+            <div class="button-group-inner border-separator">
+                <button id="goto_transactions_btn" class="btn btn-full-width">Go to Transactions</button>
+                <p class="button-desc">View your balance and send resources to other players</p>
+            </div>
+
+            <div class="button-group-inner border-separator">
+                <button id="worlds_btn" class="btn btn-full-width">Go to Worlds</button>
+                <p class="button-desc">Browse and explore the available worlds in the galaxy</p>
+            </div>
+
+            <div class="button-group-inner border-separator">
+                <input id="world_seed_input" class="form-input" style="display: none;" placeholder="Enter world seed"></input>
+            </div>
+
+            <div class="button-group-inner border-separator">
+                <button id="world_gen_btn" class="btn btn-secondary" style="display: none;">Generate World</button>
+                <p class="button-desc">Create a new world using the specified seed</p>
+            </div>
+
+            <div class="button-group-inner">
+                <button id="attack_btn" class="btn btn-secondary" style="display: none;">Attack Users</button>
+                <p class="button-desc">View and attack other player worlds</p>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

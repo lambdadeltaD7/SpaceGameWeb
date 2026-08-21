@@ -7,20 +7,28 @@
 
     <script type="module" src="../js/worlds.js" defer></script>
     <script src="../js/sweetalert2.js" defer></script>
-    
+
     <link rel="stylesheet" href="css/sweetalert2.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/worlds.css">
 
 </head>
 <body>
 
-    <button id="reload_worlds_btn">reload worlds</button>
+    <div class="worlds-container">
+        <div class="worlds-header">
+            <h1 class="worlds-title">Galaxy Worlds</h1>
+            <p>Explore the available worlds in the galaxy</p>
+        </div>
 
-    <br>
-    list of worlds
-    <br>
+        <div class="worlds-list-header">
+            <h2>World List</h2>
+            <button id="reload_worlds_btn" class="reload-btn">Reload Worlds</button>
+        </div>
 
-    <div id="worlds_list" style="display: flex; flex-direction: column;">
-        
+        <div id="worlds_list" class="world-list">
+
+        </div>
     </div>
 
 </body>

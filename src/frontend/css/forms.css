@@ -1,0 +1,115 @@
+:root {
+    --forms-bg: #0a0a1a;
+    --forms-card-bg: #1a1a2e;
+    --forms-text: #e0e0e0;
+    --forms-text-secondary: #a0a0b0;
+    --forms-border: #3a3a5c;
+    --forms-accent: #4a6fa5;
+    --forms-accent-light: #5a7fc0;
+    --forms-input-bg: #2a2a3e;
+}
+
+.forms-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.forms-form {
+    background-color: var(--forms-card-bg);
+    border: 1px solid var(--forms-border);
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.forms-form.top-form {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.forms-form.bottom-form {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-input {
+    background-color: var(--forms-input-bg);
+    border: 1px solid var(--forms-border);
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    color: var(--forms-text);
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--forms-accent-light);
+}
+
+.form-input::placeholder {
+    color: var(--forms-text-secondary);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.form-actions .btn {
+    flex: 1;
+}
+
+.btn {
+    background-color: var(--forms-accent);
+    color: var(--forms-bg);
+    border: 1px solid var(--forms-accent-light);
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    text-align: center;
+}
+
+.btn:hover {
+    background-color: var(--forms-accent-light);
+    border-color: var(--forms-accent-light);
+}
+
+.btn-secondary {
+    background-color: var(--forms-input-bg);
+    color: var(--forms-text);
+    border: 1px solid var(--forms-border);
+}
+
+.btn-secondary:hover {
+    background-color: var(--forms-border);
+    border-color: var(--forms-border);
+}
+
+.status-text {
+    color: var(--forms-text-secondary);
+    font-size: 0.9rem;
+    min-height: 1.5rem;
+    margin-top: 1rem;
+}
+
+.forms-title {
+    font-size: 1.5rem;
+    color: var(--forms-text);
+    margin-bottom: 1rem;
+    text-align: center;
+}

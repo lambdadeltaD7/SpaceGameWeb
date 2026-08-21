@@ -8,20 +8,38 @@
 
     <script type="module" src="../js/registration.js" defer></script>
     <script src="../js/sweetalert2.js" defer></script>
-    
+
     <link rel="stylesheet" href="css/sweetalert2.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/forms.css">
 
 </head>
 
 <body>
-    
-    <input id="username_input" placeholder="username"></input>
-    <input id="email_input" placeholder="email"></input>
-    <input id="password_input" placeholder="password"></input>
-    <button id="register_btn">register</button>
-    <br>
 
-    <p id="status_text"></p>
+    <div class="forms-container">
+        <form class="forms-form top-form bottom-form">
+            <h1 class="forms-title">Register New Account</h1>
+
+            <div class="form-group">
+                <input id="username_input" class="form-input" placeholder="Username"></input>
+            </div>
+
+            <div class="form-group">
+                <input id="email_input" class="form-input" placeholder="Email"></input>
+            </div>
+
+            <div class="form-group">
+                <input id="password_input" class="form-input" type="password" placeholder="Password"></input>
+            </div>
+
+            <div class="form-actions">
+                <button id="register_btn" class="btn">Register</button>
+            </div>
+
+            <p id="status_text" class="status-text"></p>
+        </form>
+    </div>
 
 </body>
 

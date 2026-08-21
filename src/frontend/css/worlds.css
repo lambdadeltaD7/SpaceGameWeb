@@ -1,0 +1,90 @@
+:root {
+    --worlds-bg: #0a0a1a;
+    --worlds-card-bg: #1a1a2e;
+    --worlds-text: #e0e0e0;
+    --worlds-text-secondary: #a0a0b0;
+    --worlds-border: #3a3a5c;
+    --worlds-accent: #4a6fa5;
+    --worlds-accent-light: #5a7fc0;
+    --worlds-btn-bg: #2a2a3e;
+    --worlds-btn-hover: #2a3a5e;
+}
+
+.worlds-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.worlds-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.worlds-title {
+    font-size: 2rem;
+    color: var(--worlds-text);
+    margin-bottom: 0.5rem;
+}
+
+.worlds-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.reload-btn {
+    background-color: var(--worlds-accent);
+    color: var(--worlds-bg);
+    border: 1px solid var(--worlds-accent-light);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.reload-btn:hover {
+    background-color: var(--worlds-accent-light);
+    border-color: var(--worlds-accent-light);
+}
+
+.world-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.world-card {
+    background-color: var(--worlds-card-bg);
+    border: 1px solid var(--worlds-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.world-card.top-card {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.world-card.bottom-card {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.world-card-title {
+    font-size: 1.25rem;
+    color: var(--worlds-text);
+    margin-bottom: 0.5rem;
+}
+
+.world-card-info {
+    color: var(--worlds-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.world-card-info span {
+    color: var(--worlds-accent);
+}

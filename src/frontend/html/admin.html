@@ -9,28 +9,42 @@
     <script src="../js/sweetalert2.js" defer></script>
 
     <link rel="stylesheet" href="css/sweetalert2.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/admin.css">
 
 </head>
 
 <body>
 
-    <main style="display: flex; flex-direction: column;">
-
-        <div id="sessions_list">
-
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1 class="admin-title">Admin Dashboard</h1>
+            <p>Monitor system activity and manage users</p>
         </div>
 
-        <div id="users_list">
+        <div class="list-container">
+            <div class="admin-section top-section">
+                <h2 class="section-title">Active Sessions</h2>
+                <div id="sessions_list" class="admin-list">
 
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h2 class="section-title">Registered Users</h2>
+                <div id="users_list" class="admin-list">
+
+                </div>
+            </div>
+
+            <div class="admin-section bottom-section">
+                <h2 class="section-title">Recent Transactions</h2>
+                <div id="transactions_list" class="admin-list">
+
+                </div>
+            </div>
         </div>
-
-        <div id="transactions_list">
-
-        </div>
-
-    </main>
+    </div>
 
 </body>
-
-
 </html>

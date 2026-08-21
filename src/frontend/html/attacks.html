@@ -3,24 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worlds</title>
+    <title>Attacks</title>
 
     <script type="module" src="../js/attacks.js" defer></script>
     <script src="../js/sweetalert2.js" defer></script>
-    
+
     <link rel="stylesheet" href="css/sweetalert2.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/attacks.css">
 
 </head>
 <body>
 
-    <button id="reload_worlds_btn">reload worlds</button>
+    <div class="attacks-container">
+        <div class="attacks-header">
+            <h1 class="attacks-title">Player Attacks</h1>
+            <p>View and attack other player worlds</p>
+        </div>
 
-    <br>
-    list of worlds
-    <br>
+        <div class="attacks-list-header">
+            <h2>Available Targets</h2>
+            <button id="reload_worlds_btn" class="reload-attacks-btn">Reload Worlds</button>
+        </div>
 
-    <div id="worlds_list" style="display: flex; flex-direction: column;">
-        
+        <div id="worlds_list" class="attack-list">
+
+        </div>
     </div>
 
 </body>

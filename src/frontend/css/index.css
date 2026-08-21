@@ -1,0 +1,75 @@
+:root {
+    --index-bg: #0a0a1a;
+    --index-card-bg: #1a1a2e;
+    --index-text: #e0e0e0;
+    --index-text-secondary: #a0a0b0;
+    --index-border: #3a3a5c;
+    --index-btn-bg: #4a6fa5;
+    --index-btn-hover: #5a7fc0;
+}
+
+.index-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.index-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.index-title {
+    font-size: 2rem;
+    color: var(--index-text);
+    margin-bottom: 0.5rem;
+}
+
+.index-subtitle {
+    color: var(--index-text-secondary);
+    font-size: 1rem;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.button-section {
+    background-color: var(--index-card-bg);
+    border: 1px solid var(--index-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.button-section.top-section {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.button-section.bottom-section {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.btn {
+    background-color: var(--index-btn-bg);
+    color: var(--index-bg);
+    border: 1px solid var(--index-btn-hover);
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    width: 100%;
+}
+
+.btn:hover {
+    background-color: var(--index-btn-hover);
+    border-color: var(--index-btn-hover);
+}
+
+.btn-full-width {
+    width: 100%;
+}

@@ -4,37 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Transactions</title>
 
     <script type="module" src="../js/transactions.js" defer></script>
     <script src="../js/sweetalert2.js" defer></script>
-    
+
     <link rel="stylesheet" href="css/sweetalert2.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/transactions.css">
 
 </head>
 
 <body>
-    
-    <main style="display: flex; flex-direction: column;">
 
-        <div id="balance_info_txt">
-            
+    <div class="transactions-container">
+        <div class="transactions-header">
+            <h1>Resource Transactions</h1>
+            <p>Manage your resources and trade with other players</p>
         </div>
 
-        <div id="create_transaction_container">
-            <input id="user_to_id_input" placeholder="user_to_id_input"></input>
-            <input id="res1_input" placeholder="res1_input"></input>
-            <input id="res2_input" placeholder="res2_input"></input>
-            <button id="transaction_btn"> send resources </button>
+        <div class="list-container">
+            <div id="balance_info_txt" class="balance-card top-card">
+                <h2 class="balance-title">Current Balance</h2>
+                <p class="balance-amount">0</p>
+            </div>
+
+            <div class="create-transaction-card top-card">
+                <h2 class="create-transaction-title">Send Resources</h2>
+                <div class="transaction-inputs">
+                    <div class="form-group">
+                        <input id="user_to_id_input" class="form-input" placeholder="Recipient user ID"></input>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input id="res1_input" class="form-input" placeholder="Resource 1"></input>
+                        </div>
+                        <div class="form-group">
+                            <input id="res2_input" class="form-input" placeholder="Resource 2"></input>
+                        </div>
+                    </div>
+                    <button id="transaction_btn" class="transaction-btn">Send Resources</button>
+                </div>
+            </div>
+
+            <div class="bottom-section">
+                <div class="transactions-list-header">
+                    <h2>Transaction History</h2>
+                    <button id="reload_transactions_btn" class="reload-transactions-btn">Reload Transactions</button>
+                </div>
+
+                <div id="transactions_list" class="transaction-list">
+
+                </div>
+            </div>
         </div>
-
-        <button id="reload_transactions_btn"> reload transactions </button>
-
-        <div id="transactions_list" style="display: flex; flex-direction: column;">
-            
-        </div>
-
-    </main>
+    </div>
 
 </body>
 
