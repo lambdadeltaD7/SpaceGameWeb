@@ -8,10 +8,13 @@
     --game-accent-light: #5a7fc0;
 
     --cell-space-bg: #0d1a33;
-    --cell-space-hover: #1a2a4a;
+    --cell-space-hover: #2a3a5e;
     --cell-planet-bg: #2a2a3a;
+    --cell-planet-hover: #44445c;
     --cell-planet-shield-bg: #1a5353;
+    --cell-planet-shield-hover: #2a7373;
     --cell-miner-bg: #5a2a2a;
+    --cell-miner-hover: #7a4a4a;
 
     --dialog-bg: #1a1a2e;
     --dialog-border: #3a3a5c;
@@ -66,11 +69,13 @@
     border-radius: 3px;
     width: 30px;
     height: 30px;
-    cursor: pointer;
+    /* cursor: pointer; */
+    /* transition: background-color 0.2s, border-color 0.2s; */
 }
 
 .space-cell:hover {
     background-color: var(--cell-space-hover);
+    border-color: var(--game-accent);
 }
 
 .planet-cell {
@@ -79,6 +84,12 @@
     border-radius: 3px;
     width: 30px;
     height: 30px;
+    /* transition: background-color 0.2s, border-color 0.2s; */
+}
+
+.planet-cell:hover {
+    background-color: var(--cell-planet-hover);
+    border-color: var(--game-accent);
 }
 
 .planet-shield-cell {
@@ -87,6 +98,12 @@
     border-radius: 3px;
     width: 30px;
     height: 30px;
+    /* transition: background-color 0.2s, border-color 0.2s; */
+}
+
+.planet-shield-cell:hover {
+    background-color: var(--cell-planet-shield-hover);
+    border-color: var(--game-accent-light);
 }
 
 .miner-cell {
@@ -95,6 +112,12 @@
     border-radius: 3px;
     width: 30px;
     height: 30px;
+    /* transition: background-color 0.2s, border-color 0.2s; */
+}
+
+.miner-cell:hover {
+    background-color: var(--cell-miner-hover);
+    border-color: var(--game-accent);
 }
 
 .dialog-overlay {
