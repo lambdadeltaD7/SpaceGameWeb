@@ -19,13 +19,56 @@ var old_status_text = null;
 var curr_world_info = null;
 
 
+function createDialog(id, title) {
+    const dialog = document.createElement('div');
+    dialog.id = id;
+    dialog.className = 'dialog-overlay';
+    dialog.dataset.dialogId = id;
+
+    const content = document.createElement('div');
+    content.className = 'dialog';
+
+    if (title) {
+        const header = document.createElement('div');
+        header.className = 'dialog-header';
+        header.textContent = title;
+        content.append(header);
+    }
+
+    const text = document.createElement('div');
+    text.className = 'dialog-text';
+    content.append(text);
+
+    const btn_container = document.createElement('div');
+    btn_container.className = 'dialog-btn-container';
+    content.append(btn_container);
+
+    dialog.append(content);
+
+    return { dialog, content, text, btn_container };
+}
+
+function createDialogButton(btn_text, is_secondary = false) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = is_secondary ? 'dialog-btn dialog-btn-secondary' : 'dialog-btn';
+    btn.textContent = btn_text;
+    return btn;
+}
+
+function closeDialog(dialog) {
+    if (dialog) {
+        dialog.remove();
+    }
+}
+
 async function get_user_info_str() {
     const result = await fetch(base_url + `/api/v1/auth/session_info`);
     const data = await result.json();
-    if(data.is_logged){
+    if (data.is_logged) {
         return `username:${data.username}, res1:${data.res1}, res2:${data.res2}, GLOBAL_cnt_active_shields:${data.cnt_active_shields}`;
     }
-    else{
+    else {
         return "You are not logged in. No info here."
     }
 }
@@ -47,7 +90,6 @@ async function get_world_miners() {
     const data = await result.json();
     return data;
 }
-
 
 
 async function init() {
@@ -76,12 +118,11 @@ async function init() {
 async function render_world(world_info, planets, miners) {
     const w = world_info.w;
     const h = world_info.h;
-    const cell_w = 100 / w;
 
     var grid = Array.from({length:h}, () => new Array(w).fill(0));
     var p_dict = {};
     var m_dict = {};
-    
+
     for(var p of planets){
         grid[p.y][p.x] = 1;
         if(p.shield_on){
@@ -98,7 +139,7 @@ async function render_world(world_info, planets, miners) {
     game_grid.innerHTML = '';
     for(var i=0; i<h; ++i){
         const curr_row = document.createElement('div');
-        curr_row.style = "display: flex; flex-direction: row";
+        curr_row.className = 'game-row';
 
         for(var j=0; j<w; ++j){
             var curr_cell = render_cell(grid, p_dict, m_dict, i, j);
@@ -113,85 +154,59 @@ function render_cell(grid, p_dict, m_dict, i, j){
     var curr_cell = document.createElement('div');
 
     if(grid[i][j] == 1){
-        curr_cell.style.backgroundColor = "black";
+        curr_cell.className = 'planet-cell';
         init_planet_cell(curr_cell, p_dict[`${i}_${j}`]);
     }
 
     else if (grid[i][j] == 2){
-        curr_cell.style.backgroundColor = "green";
+        curr_cell.className = 'planet-shield-cell';
         init_planet_cell(curr_cell, p_dict[`${i}_${j}`]);
     }
 
     else if (grid[i][j] == 3){
-        curr_cell.style.backgroundColor = "red";
+        curr_cell.className = 'miner-cell';
         init_miner_cell(curr_cell, m_dict[`${i}_${j}`]);
     }
 
     else{
-        curr_cell.style.backgroundColor = "blue";
-        init_space_cell(curr_cell, i, j);
         curr_cell.className = 'space-cell';
+        init_space_cell(curr_cell, i, j);
     }
-    
-    curr_cell.style.width = `30px`;
-    curr_cell.style.height = "30px";
-
 
     return curr_cell;
 }
 
 
-
 function init_space_cell(curr_cell, i, j){
-    curr_cell.className = 'space-cell';
     curr_cell.addEventListener('click', () => {on_mouse_click_space(i, j)});
 }
 
 
-
 async function on_mouse_click_space(i, j){
 
-    var add_miner_dialog = init_add_miner_dialog(i, j);
-    const add_miner_dialog_btn_ok = document.createElement('button');
-    const add_miner_dialog_btn_cancel = document.createElement('button');
+    const { dialog, text, btn_container } = createDialog(
+        `add_miner_dialog_id_${world_id}_${i}_${j}`
+    );
 
-    add_miner_dialog_btn_ok.textContent = 'add miner';
-    add_miner_dialog_btn_cancel.textContent = 'cancel';
+    text.textContent = `do you want to add new miner to (x,y)=(${j},${i})?\nyou will spend N res1!!!`;
 
-    add_miner_dialog.append(add_miner_dialog_btn_ok);
-    add_miner_dialog.append(add_miner_dialog_btn_cancel);
+    const ok_btn = createDialogButton('add miner');
+    const cancel_btn = createDialogButton('cancel', true);
 
-    add_miner_dialog_btn_ok.addEventListener('click', async () => {
-        await add_miner_dialog_btn_ok_callable(add_miner_dialog, i, j);
+    btn_container.append(ok_btn, cancel_btn);
+
+    ok_btn.addEventListener('click', async () => {
+        await add_miner_dialog_btn_ok_callable(dialog, i, j);
     });
 
-    add_miner_dialog_btn_cancel.addEventListener('click', () => {
-        add_miner_dialog.style.display = "none";
-        document.getElementById(add_miner_dialog.id).remove();
+    cancel_btn.addEventListener('click', () => {
+        closeDialog(dialog);
     });
 
-    document.getElementById('doc_body').append(add_miner_dialog);
+    document.getElementById('doc_body').append(dialog);
 }
 
-function init_add_miner_dialog(i, j){
-    var add_miner_dialog = document.createElement('div');
-    add_miner_dialog.id = `add_miner_dialog_id_${world_id}_${i}_${j}`;
-    
-    add_miner_dialog.style =
-        "position: absolute; top: 10%;" +
-        "left: 30%; border: solid black 5px; flex-direction: column;" +
-        "background-color: cadetblue; color: black;";
-
-    const add_miner_dialog_txt = document.createElement('p');
-
-    add_miner_dialog_txt.textContent = `do you want to add new miner to (x,y)=(${j},${i})?`;
-    add_miner_dialog_txt.textContent += 'you will spend N res1!!!';
-    add_miner_dialog.append(add_miner_dialog_txt);
-   
-    return add_miner_dialog;
-}
-
-async function add_miner_dialog_btn_ok_callable(add_miner_dialog, i, j){
+async function add_miner_dialog_btn_ok_callable(dialog, i, j){
 
 
     const miner_obj = {
@@ -200,8 +215,6 @@ async function add_miner_dialog_btn_ok_callable(add_miner_dialog, i, j){
         "x" : j,
         "y" : i
     };
-    
-    console.log(`miner=${miner_obj}`);
 
     const result = await fetch(
         base_url + '/api/v1/miners/',
@@ -215,17 +228,15 @@ async function add_miner_dialog_btn_ok_callable(add_miner_dialog, i, j){
     );
 
     if(result.ok){
-        document.getElementById(add_miner_dialog.id).style.display="none";
-        document.getElementById(add_miner_dialog.id).remove();
+        closeDialog(dialog);
         await init();
     }
     else{
         const data = await result.json();
         showErr(data.detail);
-        document.getElementById(add_miner_dialog.id).remove();
+        closeDialog(dialog);
     }
-} 
-
+}
 
 
 
@@ -251,56 +262,34 @@ function on_mouse_leave_planet(){
 
 async function on_mouse_click_planet(planet_info){
 
-    var shield_dialog = init_shield_dialog(planet_info);
-    const shield_dialog_btn_ok = document.createElement('button');
-    const shield_dialog_btn_cancel = document.createElement('button');
-
-    shield_dialog_btn_ok.textContent = 'change shield status';
-    shield_dialog_btn_cancel.textContent = 'cancel';
-
-    shield_dialog.append(shield_dialog_btn_ok);
-    shield_dialog.append(shield_dialog_btn_cancel);
-
-    shield_dialog_btn_ok.addEventListener('click', async () => {
-        await shield_dialog_btn_ok_callable(shield_dialog, planet_info);
-    });
-
-    shield_dialog_btn_cancel.addEventListener('click', () => {
-        shield_dialog.style.display = "none";
-        document.getElementById(shield_dialog.id).remove();
-    });
-
-    document.getElementById('doc_body').append(shield_dialog);
-}
-
-function init_shield_dialog(planet_info){
-    var shield_dialog = document.createElement('div');
-    shield_dialog.id = `shield_dialog_id_${planet_info.planet_id}`;
-    
-    shield_dialog.style =
-        "position: absolute; top: 10%;" +
-        "left: 30%; border: solid black 5px; flex-direction: column;" +
-        "background-color: cadetblue; color: black;";
-
-    const shield_dialog_txt = document.createElement('p');
-
-    shield_dialog_txt.textContent = `shield menu for planet_id=${planet_info.planet_id}\n`;
+    const { dialog, text, btn_container } = createDialog(
+        `shield_dialog_id_${planet_info.planet_id}`
+    );
 
     if(planet_info.shield_on){
-        shield_dialog_txt.textContent += 'right now shield is active\n';
+        text.textContent = `shield menu for planet_id=${planet_info.planet_id}\nright now shield is active\nwhen active shield consumes N res1 per sec\nchange shield status?\n`;
     }
     else{
-        shield_dialog_txt.textContent += 'right now shield is NOT active\n';
+        text.textContent = `shield menu for planet_id=${planet_info.planet_id}\nright now shield is NOT active\nwhen active shield consumes N res1 per sec\nchange shield status?\n`;
     }
-    shield_dialog_txt.textContent += 'when active shield consumes N res1 per sec\n';
-    shield_dialog_txt.textContent += 'change shield status?\n';
-    shield_dialog.append(shield_dialog_txt);
-   
 
-    return shield_dialog;
+    const ok_btn = createDialogButton('change shield status');
+    const cancel_btn = createDialogButton('cancel', true);
+
+    btn_container.append(ok_btn, cancel_btn);
+
+    ok_btn.addEventListener('click', async () => {
+        await shield_dialog_btn_ok_callable(dialog, planet_info);
+    });
+
+    cancel_btn.addEventListener('click', () => {
+        closeDialog(dialog);
+    });
+
+    document.getElementById('doc_body').append(dialog);
 }
 
-async function shield_dialog_btn_ok_callable(shield_dialog, planet_info){
+async function shield_dialog_btn_ok_callable(dialog, planet_info){
     const result = await fetch(
     base_url + `/api/v1/planets/${planet_info.planet_id}?shield_on=${!planet_info.shield_on}`,
         {
@@ -309,17 +298,15 @@ async function shield_dialog_btn_ok_callable(shield_dialog, planet_info){
     );
 
     if(result.ok){
-        document.getElementById(shield_dialog.id).style.display="none";
-        document.getElementById(shield_dialog.id).remove();
+        closeDialog(dialog);
         await init();
     }
     else{
         const data = await result.json();
         showErr(data.detail);
-        document.getElementById(shield_dialog.id).remove();
+        closeDialog(dialog);
     }
-} 
-
+}
 
 
 function init_miner_cell(curr_cell, miner_info){
@@ -343,68 +330,46 @@ function on_mouse_leave_miner(){
 
 async function on_mouse_click_miner(miner_info){
 
-    var sell_miner_dialog = init_sell_miner_dialog(miner_info);
-    const sell_miner_dialog_btn_ok = document.createElement('button');
-    const sell_miner_dialog_btn_cancel = document.createElement('button');
+    const { dialog, text, btn_container } = createDialog(
+        `sell_miner_dialog_id_${miner_info.miner_id}`
+    );
 
-    sell_miner_dialog_btn_ok.textContent = 'sell miner';
-    sell_miner_dialog_btn_cancel.textContent = 'cancel';
+    text.textContent = `sell miner_id=${miner_info.miner_id}\nyou will get half the buy price after it\nconfirm?\n`;
 
-    sell_miner_dialog.append(sell_miner_dialog_btn_ok);
-    sell_miner_dialog.append(sell_miner_dialog_btn_cancel);
+    const ok_btn = createDialogButton('sell miner');
+    const cancel_btn = createDialogButton('cancel', true);
 
-    sell_miner_dialog_btn_ok.addEventListener('click', async () => {
-        await sell_miner_dialog_btn_ok_callable(sell_miner_dialog, miner_info);
+    btn_container.append(ok_btn, cancel_btn);
+
+    ok_btn.addEventListener('click', async () => {
+        await sell_miner_dialog_btn_ok_callable(dialog, miner_info);
     });
 
-    sell_miner_dialog_btn_cancel.addEventListener('click', () => {
-        sell_miner_dialog.style.display = "none";
-        document.getElementById(sell_miner_dialog.id).remove();
+    cancel_btn.addEventListener('click', () => {
+        closeDialog(dialog);
     });
 
-    document.getElementById('doc_body').append(sell_miner_dialog);
+    document.getElementById('doc_body').append(dialog);
 }
 
-function init_sell_miner_dialog(miner_info){
-    var sell_miner_dialog = document.createElement('div');
-    sell_miner_dialog.id = `sell_miner_dialog_id_${miner_info.miner_id}`;
-    
-    sell_miner_dialog.style =
-        "position: absolute; top: 10%;" +
-        "left: 30%; border: solid black 5px; flex-direction: column;" +
-        "background-color: cadetblue; color: black;";
-
-    const sell_miner_dialog_txt = document.createElement('p');
-
-    sell_miner_dialog_txt.textContent = `sell miner_id=${miner_info.miner_id}\n`;
-    sell_miner_dialog_txt.textContent += 'you will get half the buy price after it';
-    sell_miner_dialog_txt.textContent += 'confirm?\n';
-
-    sell_miner_dialog.append(sell_miner_dialog_txt);
-   
-    return sell_miner_dialog;
-}
-
-async function sell_miner_dialog_btn_ok_callable(sell_miner_dialog, miner_info){
+async function sell_miner_dialog_btn_ok_callable(dialog, miner_info){
     const result = await fetch(
-    base_url + `/api/v1/miners/${miner_info.miner_id}`,
-        {
-            method: 'DELETE',
-        }
+        base_url + `/api/v1/miners/${miner_info.miner_id}`,
+            {
+                method: 'DELETE',
+            }
     );
 
     if(result.ok){
-        document.getElementById(sell_miner_dialog.id).style.display="none";
-        document.getElementById(sell_miner_dialog.id).remove();
+        closeDialog(dialog);
         await init();
     }
     else{
         const data = await result.json();
         showErr(data.detail);
-        document.getElementById(sell_miner_dialog.id).remove();
+        closeDialog(dialog);
     }
-} 
-
+}
 
 
 queueMicrotask(async () => {await init();});

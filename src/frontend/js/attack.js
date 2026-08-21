@@ -19,13 +19,56 @@ var old_status_text = null;
 var curr_world_info = null;
 
 
+function createDialog(id, title) {
+    const dialog = document.createElement('div');
+    dialog.id = id;
+    dialog.className = 'dialog-overlay';
+    dialog.dataset.dialogId = id;
+
+    const content = document.createElement('div');
+    content.className = 'dialog';
+
+    if (title) {
+        const header = document.createElement('div');
+        header.className = 'dialog-header';
+        header.textContent = title;
+        content.append(header);
+    }
+
+    const text = document.createElement('div');
+    text.className = 'dialog-text';
+    content.append(text);
+
+    const btn_container = document.createElement('div');
+    btn_container.className = 'dialog-btn-container';
+    content.append(btn_container);
+
+    dialog.append(content);
+
+    return { dialog, content, text, btn_container };
+}
+
+function createDialogButton(btn_text, is_secondary = false) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = is_secondary ? 'dialog-btn dialog-btn-secondary' : 'dialog-btn';
+    btn.textContent = btn_text;
+    return btn;
+}
+
+function closeDialog(dialog) {
+    if (dialog) {
+        dialog.remove();
+    }
+}
+
 async function get_user_info_str() {
     const result = await fetch(base_url + `/api/v1/auth/session_info`);
     const data = await result.json();
-    if(data.is_logged){
+    if (data.is_logged) {
         return `username:${data.username}, res1:${data.res1}, res2:${data.res2}, GLOBAL_cnt_active_shields:${data.cnt_active_shields}`;
     }
-    else{
+    else {
         return "You are not logged in. No info here."
     }
 }
@@ -47,7 +90,6 @@ async function get_world_miners() {
     const data = await result.json();
     return data;
 }
-
 
 
 async function init() {
@@ -76,12 +118,11 @@ async function init() {
 async function render_world(world_info, planets, miners) {
     const w = world_info.w;
     const h = world_info.h;
-    const cell_w = 100 / w;
 
     var grid = Array.from({length:h}, () => new Array(w).fill(0));
     var p_dict = {};
     var m_dict = {};
-    
+
     for(var p of planets){
         grid[p.y][p.x] = 1;
         if(p.shield_on){
@@ -98,7 +139,7 @@ async function render_world(world_info, planets, miners) {
     game_grid.innerHTML = '';
     for(var i=0; i<h; ++i){
         const curr_row = document.createElement('div');
-        curr_row.style = "display: flex; flex-direction: row";
+        curr_row.className = 'game-row';
 
         for(var j=0; j<w; ++j){
             var curr_cell = render_cell(grid, p_dict, m_dict, i, j);
@@ -113,40 +154,32 @@ function render_cell(grid, p_dict, m_dict, i, j){
     var curr_cell = document.createElement('div');
 
     if(grid[i][j] == 1){
-        curr_cell.style.backgroundColor = "black";
+        curr_cell.className = 'planet-cell';
         init_planet_cell(curr_cell, p_dict[`${i}_${j}`]);
     }
 
     else if (grid[i][j] == 2){
-        curr_cell.style.backgroundColor = "green";
+        curr_cell.className = 'planet-shield-cell';
         init_planet_cell(curr_cell, p_dict[`${i}_${j}`]);
     }
 
     else if (grid[i][j] == 3){
-        curr_cell.style.backgroundColor = "red";
+        curr_cell.className = 'miner-cell';
         init_miner_cell(curr_cell, m_dict[`${i}_${j}`]);
     }
 
     else{
-        curr_cell.style.backgroundColor = "blue";
-        init_space_cell(curr_cell, i, j);
         curr_cell.className = 'space-cell';
+        init_space_cell(curr_cell, i, j);
     }
-    
-    curr_cell.style.width = `30px`;
-    curr_cell.style.height = "30px";
-
 
     return curr_cell;
 }
 
 
-
 function init_space_cell(curr_cell, i, j){
     curr_cell.className = 'space-cell';
 }
-
-
 
 function init_planet_cell(curr_cell, planet_info){
     curr_cell.addEventListener('mouseenter', () => {on_mouse_enter_planet(planet_info)});
@@ -170,47 +203,33 @@ function on_mouse_leave_planet(){
 
 async function on_mouse_click_planet(planet_info){
 
-    var attack_planet_dialog = init_attack_planet_dialog(planet_info);
-    const attack_planet_dialog_btn_ok = document.createElement('button');
-    const attack_planet_dialog_btn_cancel = document.createElement('button');
+    const { dialog, text, btn_container } = createDialog(
+        `attack_planet_dialog_id_${planet_info.planet_id}`
+    );
 
-    attack_planet_dialog_btn_ok.textContent = 'attack planet';
-    attack_planet_dialog_btn_cancel.textContent = 'cancel';
+    text.textContent = `attack planet_id=${planet_info.planet_id}?\nit costs N res2\n`;
 
-    attack_planet_dialog.append(attack_planet_dialog_btn_ok);
-    attack_planet_dialog.append(attack_planet_dialog_btn_cancel);
+    const ok_btn = createDialogButton('attack planet');
+    const cancel_btn = createDialogButton('cancel', true);
 
-    attack_planet_dialog_btn_ok.addEventListener('click', async () => {
-        await attack_planet_dialog_btn_ok_callable(attack_planet_dialog, planet_info);
+    btn_container.append(ok_btn, cancel_btn);
+
+    ok_btn.addEventListener('click', async () => {
+        await attack_planet_dialog_btn_ok_callable(dialog, planet_info);
     });
 
-    attack_planet_dialog_btn_cancel.addEventListener('click', () => {
-        attack_planet_dialog.style.display = "none";
-        document.getElementById(attack_planet_dialog.id).remove();
+    cancel_btn.addEventListener('click', () => {
+        closeDialog(dialog);
     });
 
-    document.getElementById('doc_body').append(attack_planet_dialog);
+    document.getElementById('doc_body').append(dialog);
 }
 
 function init_attack_planet_dialog(planet_info){
-    var attack_planet_dialog = document.createElement('div');
-    attack_planet_dialog.id = `attack_planet_dialog_id_${planet_info.planet_id}`;
-    
-    attack_planet_dialog.style =
-        "position: absolute; top: 10%;" +
-        "left: 30%; border: solid black 5px; flex-direction: column;" +
-        "background-color: cadetblue; color: black;";
-
-    const attack_planet_dialog_txt = document.createElement('p');
-
-    attack_planet_dialog_txt.textContent = `attack planet_id=${planet_info.planet_id}?\n`;
-    attack_planet_dialog_txt.textContent += 'it costs N res2\n';
-    attack_planet_dialog.append(attack_planet_dialog_txt);
-   
-    return attack_planet_dialog;
+    return createDialog(`attack_planet_dialog_id_${planet_info.planet_id}`);
 }
 
-async function attack_planet_dialog_btn_ok_callable(attack_planet_dialog, planet_info){
+async function attack_planet_dialog_btn_ok_callable(dialog, planet_info){
     const result = await fetch(
     base_url + `/api/v1/planets/${planet_info.planet_id}/attack?world_id=${world_id}`,
         {
@@ -219,17 +238,15 @@ async function attack_planet_dialog_btn_ok_callable(attack_planet_dialog, planet
     );
 
     if(result.ok){
-        document.getElementById(attack_planet_dialog.id).style.display="none";
-        document.getElementById(attack_planet_dialog.id).remove();
+        closeDialog(dialog);
         await init();
     }
     else{
         const data = await result.json();
         showErr(data.detail);
-        document.getElementById(attack_planet_dialog.id).remove();
+        closeDialog(dialog);
     }
-} 
-
+}
 
 
 function init_miner_cell(curr_cell, miner_info){
@@ -252,68 +269,47 @@ function on_mouse_leave_miner(){
 }
 
 async function on_mouse_click_miner(miner_info){
-    var attack_miner_dialog = init_attack_miner_dialog(miner_info);
-    const sell_miner_dialog_btn_ok = document.createElement('button');
-    const sell_miner_dialog_btn_cancel = document.createElement('button');
 
-    sell_miner_dialog_btn_ok.textContent = 'attack miner';
-    sell_miner_dialog_btn_cancel.textContent = 'cancel';
+    const { dialog, text, btn_container } = createDialog(
+        `attack_miner_dialog_id_${miner_info.miner_id}`
+    );
 
-    attack_miner_dialog.append(sell_miner_dialog_btn_ok);
-    attack_miner_dialog.append(sell_miner_dialog_btn_cancel);
+    text.textContent = `attack miner_id=${miner_info.miner_id}\nit costs N res2\nconfirm?\n`;
 
-    sell_miner_dialog_btn_ok.addEventListener('click', async () => {
-        await attack_miner_dialog_btn_ok_callable(attack_miner_dialog, miner_info);
+    const ok_btn = createDialogButton('attack miner');
+    const cancel_btn = createDialogButton('cancel', true);
+
+    btn_container.append(ok_btn, cancel_btn);
+
+    ok_btn.addEventListener('click', async () => {
+        await attack_miner_dialog_btn_ok_callable(dialog, miner_info);
     });
 
-    sell_miner_dialog_btn_cancel.addEventListener('click', () => {
-        attack_miner_dialog.style.display = "none";
-        document.getElementById(attack_miner_dialog.id).remove();
+    cancel_btn.addEventListener('click', () => {
+        closeDialog(dialog);
     });
 
-    document.getElementById('doc_body').append(attack_miner_dialog);
+    document.getElementById('doc_body').append(dialog);
 }
 
-function init_attack_miner_dialog(miner_info){
-    var attack_miner_dialog = document.createElement('div');
-    attack_miner_dialog.id = `attack_miner_dialog_id_${miner_info.miner_id}`;
-    
-    attack_miner_dialog.style =
-        "position: absolute; top: 10%;" +
-        "left: 30%; border: solid black 5px; flex-direction: column;" +
-        "background-color: cadetblue; color: black;";
-
-    const attack_miner_dialog_txt = document.createElement('p');
-
-    attack_miner_dialog_txt.textContent = `attack miner_id=${miner_info.miner_id}\n`;
-    attack_miner_dialog_txt.textContent += 'it costs N res2';
-    attack_miner_dialog_txt.textContent += 'confirm?\n';
-
-    attack_miner_dialog.append(attack_miner_dialog_txt);
-   
-    return attack_miner_dialog;
-}
-
-async function attack_miner_dialog_btn_ok_callable(attack_miner_dialog, miner_info){
+async function attack_miner_dialog_btn_ok_callable(dialog, miner_info){
     const result = await fetch(
-    base_url + `/api/v1/miners/${miner_info.miner_id}/attack?world_id=${world_id}`,
-        {
-            method: 'DELETE',
-        }
+        base_url + `/api/v1/miners/${miner_info.miner_id}/attack?world_id=${world_id}`,
+            {
+                method: 'DELETE',
+            }
     );
 
     if(result.ok){
-        document.getElementById(attack_miner_dialog.id).style.display="none";
-        document.getElementById(attack_miner_dialog.id).remove();
+        closeDialog(dialog);
         await init();
     }
     else{
         const data = await result.json();
         showErr(data.detail);
-        document.getElementById(attack_miner_dialog.id).remove();
+        closeDialog(dialog);
     }
-} 
-
+}
 
 
 queueMicrotask(async () => {await init();});
