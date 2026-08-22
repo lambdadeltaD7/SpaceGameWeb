@@ -41,6 +41,7 @@ export function spreadImgOnBG(
 )
 {
     const container = document.body;
+    container.style.position = 'relative';
 
     for (let i = 0; i < cnt; i++) {
         const img_el = document.createElement('img');
@@ -50,8 +51,7 @@ export function spreadImgOnBG(
         img_el.style.width = `${Math.random() * scale + offset}px`;
         img_el.style.height = img_el.style.width;
         img_el.style.left = `${Math.random() * 100}%`;
-        img_el.style.top = `${Math.random() * 100}%`;
-        // star.style.opacity = `${Math.random() * 0.5 + 0.2}`;
+        img_el.style.top = `${Math.random() * document.documentElement.scrollHeight}px`;
         img_el.style.pointerEvents = 'none';
         img_el.style.zIndex = '-1';
         img_el.style.userSelect = 'none';
