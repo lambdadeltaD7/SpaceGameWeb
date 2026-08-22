@@ -18,6 +18,8 @@ var planet_info_card_id = null;
 var old_status_text = null;
 var curr_world_info = null;
 var update_status_block = false;
+var constants = null;
+
 
 function createDialog(id, title) {
     const dialog = document.createElement('div');
@@ -97,8 +99,9 @@ async function init() {
     world_id = world_id.value;
 
     
-        const world_info = await get_world_info();
-        curr_world_info = world_info;
+    const world_info = await get_world_info();
+    curr_world_info = world_info;
+
     if(!update_status_block){
         world_info_txt.textContent = `
         owner_id: ${world_info.user_id}
@@ -115,6 +118,9 @@ async function init() {
     const miners = await get_world_miners();
 
     render_world(world_info, planets, miners);
+
+    const res = await fetch(base_url + "/api/v1/admin/constants");
+    constants = await res.json();
 }
 
 async function render_world(world_info, planets, miners) {
@@ -190,8 +196,8 @@ async function on_mouse_click_space(i, j){
         `add_miner_dialog_id_${world_id}_${i}_${j}`
     );
 
-    text.textContent = `do you want to add new miner to (x,y)=(${j},${i})?\nyou will spend N res1!!!`;
-
+    text.textContent = `do you want to add new miner to (x,y)=(${j},${i})?\nyou will spend ${constants["MINER_BUY_PRICE"]} res1!!!\n`;
+    text.textContent += `miner will gather res1 and res2 from planets in radius ${constants["MINER_RADIUS"]}\n`;
     const ok_btn = createDialogButton('add miner');
     const cancel_btn = createDialogButton('cancel', true);
 
@@ -271,10 +277,10 @@ async function on_mouse_click_planet(planet_info){
     );
 
     if(planet_info.shield_on){
-        text.textContent = `shield menu for planet_id=${planet_info.planet_id}\nright now shield is active\nwhen active shield consumes N res1 per sec\nchange shield status?\n`;
+        text.textContent = `shield menu for planet_id=${planet_info.planet_id}\nright now shield is active\nwhen active shield consumes ${constants["SHIELD_COST"]} res1 per sec\nchange shield status?\n`;
     }
     else{
-        text.textContent = `shield menu for planet_id=${planet_info.planet_id}\nright now shield is NOT active\nwhen active shield consumes N res1 per sec\nchange shield status?\n`;
+        text.textContent = `shield menu for planet_id=${planet_info.planet_id}\nright now shield is NOT active\nwhen active shield consumes ${constants["SHIELD_COST"]} res1 per sec\nchange shield status?\n`;
     }
 
     const ok_btn = createDialogButton('change shield status');
@@ -340,7 +346,7 @@ async function on_mouse_click_miner(miner_info){
         `sell_miner_dialog_id_${miner_info.miner_id}`
     );
 
-    text.textContent = `sell miner_id=${miner_info.miner_id}\nyou will get half the buy price after it\nconfirm?\n`;
+    text.textContent = `sell miner_id=${miner_info.miner_id}\nyou will get ${constants["MINER_SELL_PRICE"]} res1 after it \nconfirm?\n`;
 
     const ok_btn = createDialogButton('sell miner');
     const cancel_btn = createDialogButton('cancel', true);

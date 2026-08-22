@@ -18,7 +18,7 @@ var planet_info_card_id = null;
 var old_status_text = null;
 var curr_world_info = null;
 var update_status_block = false;
-
+var constants = null;
 
 function createDialog(id, title) {
     const dialog = document.createElement('div');
@@ -117,6 +117,9 @@ async function init() {
     const miners = await get_world_miners();
 
     render_world(world_info, planets, miners);
+
+    const res = await fetch(base_url + "/api/v1/admin/constants");
+    constants = await res.json();
 }
 
 async function render_world(world_info, planets, miners) {
@@ -213,7 +216,7 @@ async function on_mouse_click_planet(planet_info){
         `attack_planet_dialog_id_${planet_info.planet_id}`
     );
 
-    text.textContent = `attack planet_id=${planet_info.planet_id}?\nit costs N res2\n`;
+    text.textContent = `attack planet_id=${planet_info.planet_id}?\nit costs ${constants["PLANET_ATTACK_COST"]} res2\n`;
 
     const ok_btn = createDialogButton('attack planet');
     const cancel_btn = createDialogButton('cancel', true);
@@ -282,7 +285,7 @@ async function on_mouse_click_miner(miner_info){
         `attack_miner_dialog_id_${miner_info.miner_id}`
     );
 
-    text.textContent = `attack miner_id=${miner_info.miner_id}\nit costs N res2\nconfirm?\n`;
+    text.textContent = `attack miner_id=${miner_info.miner_id}\nit costs ${constants["MINER_ATTACK_COST"]} res2\nconfirm?\n`;
 
     const ok_btn = createDialogButton('attack miner');
     const cancel_btn = createDialogButton('cancel', true);
