@@ -17,6 +17,7 @@ var world_id = null;
 var planet_info_card_id = null;
 var old_status_text = null;
 var curr_world_info = null;
+var update_status_block = false;
 
 
 function createDialog(id, title) {
@@ -98,14 +99,17 @@ async function init() {
 
     const world_info = await get_world_info();
     curr_world_info = world_info;
-    world_info_txt.textContent = `
-    owner_id: ${world_info.user_id}
-    world_id: ${world_info.world_id} 
-    seed: ${world_info.seed}
-    size: (w,h) = (${world_info.w},${world_info.h})
-    `;
+    if(!update_status_block){
+        world_info_txt.textContent = `
+        owner_id: ${world_info.user_id}
+        world_id: ${world_info.world_id} 
+        seed: ${world_info.seed}
+        size: (w,h) = (${world_info.w},${world_info.h})
+        `;
+        old_status_text = world_info_txt.textContent;
+    }
 
-    old_status_text = world_info_txt.textContent;
+    
 
     user_info_txt.textContent = await get_user_info_str();
 
@@ -188,6 +192,7 @@ function init_planet_cell(curr_cell, planet_info){
 }
 
 function on_mouse_enter_planet(planet_info){
+    update_status_block = true;
     world_info_txt.textContent = `
         planet_id = ${planet_info.planet_id},
         res1 = ${planet_info.res1},
@@ -198,6 +203,7 @@ function on_mouse_enter_planet(planet_info){
 }
 
 function on_mouse_leave_planet(){
+    update_status_block = false;
     world_info_txt.textContent = old_status_text;
 }
 
@@ -256,6 +262,7 @@ function init_miner_cell(curr_cell, miner_info){
 }
 
 function on_mouse_enter_miner(miner_info){
+    update_status_block = true;
     world_info_txt.textContent = `
         miner_id = ${miner_info.miner_id},
         x = ${miner_info.x},
@@ -265,6 +272,7 @@ function on_mouse_enter_miner(miner_info){
 }
 
 function on_mouse_leave_miner(){
+    update_status_block = false;
     world_info_txt.textContent = old_status_text;
 }
 
