@@ -7,6 +7,7 @@ import {
 } from "./utils.js"
 
 const attack_btn = document.getElementById('attack_btn');
+const help_btn = document.getElementById('help_btn');
 
 const login_button = document.getElementById('login_button');
 const register_button = document.getElementById('register_button');
@@ -31,6 +32,7 @@ const transactions_wrap = document.getElementById('transactions_wrap');
 
 const ONLINE_INFO_UPDATE_FREQ = 3000;
 var user_id = null;
+var constants = null;
 
 
 async function init(){
@@ -129,6 +131,44 @@ attack_btn.addEventListener('click', () => {
     window.location.href = base_url + "/attacks";
 });
 
+help_btn.addEventListener('click', () => {
+    Swal.fire({
+        title: 'How to Play',
+        html: `
+            <div style="text-align: left; font-size: 0.85rem; line-height: 1.6;">
+                <b>Resources:</b><br>
+                Two types: res1 and res2. New users start with 100 of each.<br><br>
+
+                <b>Worlds:</b><br>
+                Generate a world with a seed. World size is random 16x16 to 64x64. Each world has 2-16 planets with random res1/res2.<br><br>
+
+                <b>Planets:</b><br>
+                Click a planet to toggle shield. Shield costs ${constants["SHIELD_COST"]} res1 per tick from your balance. If your res1 hits 0, all shields turn off.<br><br>
+
+                <b>Miners:</b><br>
+                Click empty space to place a miner (costs ${constants["MINER_BUY_PRICE"]} res1). Click a miner to sell it (returns ${constants["MINER_SELL_PRICE"]} res1). Miners extract resources from nearby planets (radius ${constants["MINER_RADIUS"]}). Extraction: ${constants["MINER_RES1_EXTRACTION_SPEED"]} res1 and ${constants["MINER_RES2_EXTRACTION_SPEED"]} res2 per tick per planet. Extracted resources go to the planet owner, not the miner owner.<br><br>
+
+                <b>Attacks:</b><br>
+                Go to Attacks, pick a world. Click a planet to destroy it (costs ${constants["PLANET_ATTACK_COST"]} res2). If the planet has a shield, the shield breaks instead. Click a miner to destroy it (costs ${constants["MINER_ATTACK_COST"]} res2). Attack is destructive - you gain nothing.<br><br>
+
+                <b>Transactions:</b><br>
+                Send res1/res2 to any user. Balance can't go below 0.
+            </div>
+        `,
+        width: 600,
+        confirmButtonText: 'Got it',
+        background: '#1a1a2e',
+        color: '#e0e0e0',
+        customClass: { popup: 'swal-dark' }
+    });
+});
+
+
+
+queueMicrotask(async () => {
+    const res = await fetch(base_url + "/api/v1/admin/constants");
+    constants = await res.json();
+});
 
 queueMicrotask( async() => {await init();});
 queueMicrotask( async() => {await update_online_info();});
