@@ -9,10 +9,15 @@ from db_models import PlanetsSchemaDB, WorldsSchemaDB, UsersSchemaDB
 
 logger = logging.getLogger(__name__)
 
-SHIELD_COST = 2
-MINER_RADIUS = 3
-MINER_RES1_EXTRACTION_SPEED = 3
-MINER_RES2_EXTRACTION_SPEED = 4
+constants = {
+    "SHIELD_COST" : 2,
+    "MINER_RADIUS" : 3,
+    "MINER_RES1_EXTRACTION_SPEED" : 3,
+    "MINER_RES2_EXTRACTION_SPEED" : 4
+}
+for k,v in constants.items():
+    r_game.hset("CONSTANTS", k, v)
+
 
 
 @shared_task
@@ -134,7 +139,7 @@ def handle_shield_res_use():
         else:
             new_res1 = max(
                 0,
-                user_info["res1"] - SHIELD_COST * user_info["cnt_active_shields"]
+                user_info["res1"] - constants["SHIELD_COST"] * user_info["cnt_active_shields"]
             )
             
             logger.info(f"updated res1 for uid:{user_id} from {user_info["res1"]} to {new_res1}")
@@ -207,14 +212,14 @@ def handle_miner_res_extraction():
         
         for m in miners.values():
             logger.warn(f"processing miner_id={m["miner_id"]}...\n")
-            neighb = get_neighb(m["x"], m["y"], MINER_RADIUS, size["w"], size["h"])
+            neighb = get_neighb(m["x"], m["y"], constants["MINER_RADIUS"], size["w"], size["h"])
             for (x,y) in neighb:
                 if (x,y) in planets_map:
                     p = planets_map[(x,y)]
 
                     old_r1, old_r2 = p["res1"], p["res2"]
-                    new_r1 = max(0, old_r1 - MINER_RES1_EXTRACTION_SPEED)
-                    new_r2 = max(0, old_r2 - MINER_RES2_EXTRACTION_SPEED)
+                    new_r1 = max(0, old_r1 - constants["MINER_RES1_EXTRACTION_SPEED"])
+                    new_r2 = max(0, old_r2 - constants["MINER_RES2_EXTRACTION_SPEED"])
                     got_r1 = old_r1 - new_r1 
                     got_r2 = old_r2 - new_r2 
 

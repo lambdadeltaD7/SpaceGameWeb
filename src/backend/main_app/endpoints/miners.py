@@ -20,8 +20,15 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/miners")
 
-MINER_BUY_PRICE = 20
-MINER_ATTACK_COST = MINER_BUY_PRICE
+
+constants = {
+    "MINER_BUY_PRICE": 20,
+}
+constants["MINER_SELL_PRICE"] = constants["MINER_BUY_PRICE"] // 2
+constants["MINER_ATTACK_COST"] = constants["MINER_BUY_PRICE"]
+for k,v in constants.items():
+    r_game.hset("CONSTANTS", k, v)
+
 
 def log_msg(txt):
     print('#'*64)
@@ -114,7 +121,7 @@ def create_miner(
         update_user_balance(
             user_id = int(miner.user_id),
             db_session = ses,
-            delta_res1 = (-1) * MINER_BUY_PRICE,
+            delta_res1 = (-1) * constants["MINER_BUY_PRICE"],
             delta_res2 = 0
         )
 
@@ -181,7 +188,7 @@ def attack_miner(
             user_id = int(requester_uid),
             db_session = ses,
             delta_res1 = 0,
-            delta_res2 = (-1) * MINER_ATTACK_COST
+            delta_res2 = (-1) * constants["MINER_ATTACK_COST"]
         )
         ses.commit()
 
@@ -235,7 +242,7 @@ def delete_miner(
         update_user_balance(
             user_id = miner.user_id,
             db_session = ses,
-            delta_res1 = MINER_BUY_PRICE // 2,
+            delta_res1 = constants["MINER_SELL_PRICE"],
             delta_res2 = 0
         )
 

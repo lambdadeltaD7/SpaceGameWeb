@@ -17,7 +17,11 @@ from db_connection import sql_engine, r_sessions, r_game
 
 from exceptions import *
 
-PLANET_ATTACK_COST = 30
+constants = {
+    "PLANET_ATTACK_COST" : 30
+}
+for k,v in constants.items():
+    r_game.hset("CONSTANTS", k, v)
 
 router = APIRouter(prefix="/api/v1/planets")
 
@@ -190,7 +194,7 @@ def attack_planet(
             user_id = int(requester_uid),
             db_session = ses,
             delta_res1 = 0,
-            delta_res2 = (-1) * PLANET_ATTACK_COST
+            delta_res2 = (-1) * constants["PLANET_ATTACK_COST"]
         )
         ses.commit()
 

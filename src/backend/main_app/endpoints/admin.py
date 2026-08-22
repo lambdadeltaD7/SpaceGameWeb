@@ -8,7 +8,7 @@ from fastapi import (
 )
 from endpoints.auth import get_or_create_session
 
-from db_connection import r_sessions, sql_engine
+from db_connection import r_sessions, sql_engine, r_game
 from db_models import UsersSchemaDB, WorldsSchemaDB, PlanetsSchemaDB
 
 from sqlalchemy import select
@@ -18,6 +18,10 @@ from exceptions import *
 
 router = APIRouter(prefix="/api/v1/admin")
 
+
+@router.get("/constants")
+def get_constants():
+    return { k:int(v) for k,v in r_game.hgetall("CONSTANTS").items()}
 
 def check_admin(
     session_id: Annotated[str, Depends(get_or_create_session)]
