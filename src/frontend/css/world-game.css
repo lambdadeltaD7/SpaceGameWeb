@@ -37,6 +37,9 @@
     border-bottom: 1px solid var(--game-border);
     align-items: center;
     height: 180px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .status-bar p {
