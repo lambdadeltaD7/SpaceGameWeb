@@ -67,7 +67,7 @@ async function get_user_info_str() {
     const result = await fetch(base_url + `/api/v1/auth/session_info`);
     const data = await result.json();
     if (data.is_logged) {
-        return `username:${data.username}, res1:${data.res1}, res2:${data.res2}, GLOBAL_cnt_active_shields:${data.cnt_active_shields}`;
+        return ` username:${data.username}\n res1:${data.res1}\n res2:${data.res2}\n GLOBAL_cnt_active_shields:${data.cnt_active_shields}`;
     }
     else {
         return "You are not logged in. No info here."
