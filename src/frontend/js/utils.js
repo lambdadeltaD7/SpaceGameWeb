@@ -31,3 +31,30 @@ export function showToast(txt){
         timerProgressBar: true
         });
 }
+
+
+export function spreadImgOnBG(
+    cnt = 50,
+    img_path = '../img/star.png',
+    scale = 20,
+    offset = 4,
+)
+{
+    const container = document.body;
+
+    for (let i = 0; i < cnt; i++) {
+        const img_el = document.createElement('img');
+        img_el.src = img_path;
+        img_el.alt = '';
+        img_el.style.position = 'absolute';
+        img_el.style.width = `${Math.random() * scale + offset}px`;
+        img_el.style.height = img_el.style.width;
+        img_el.style.left = `${Math.random() * 100}%`;
+        img_el.style.top = `${Math.random() * 100}%`;
+        // star.style.opacity = `${Math.random() * 0.5 + 0.2}`;
+        img_el.style.pointerEvents = 'none';
+        img_el.style.zIndex = '-1';
+        img_el.style.userSelect = 'none';
+        container.appendChild(img_el);
+    }
+}

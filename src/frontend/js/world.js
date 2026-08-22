@@ -2,7 +2,8 @@ import {
     showToast,
     showErr,
     show_latest_transactions,
-    base_url
+    base_url,
+    spreadImgOnBG
 } from "./utils.js"
 
 const status_bar = document.getElementById('status_bar');
@@ -388,3 +389,8 @@ queueMicrotask(async () => {await init();});
 
 setInterval(async () => {await show_latest_transactions();}, 5000);
 setInterval(async () => {await init();}, 670);
+
+
+spreadImgOnBG(128, '../img/star.png', 20, 6);
+spreadImgOnBG(1, '../img/death_star.png', 512, 64);
+spreadImgOnBG(20, '../img/ufo.png', 25, 10);

@@ -2,7 +2,8 @@ import {
     showToast,
     showErr,
     show_latest_transactions,
-    base_url
+    base_url,
+    spreadImgOnBG
 } from "./utils.js"
 
 const attack_btn = document.getElementById('attack_btn');
@@ -134,3 +135,8 @@ queueMicrotask( async() => {await update_online_info();});
 
 setInterval(async () => {await update_online_info();}, ONLINE_INFO_UPDATE_FREQ);
 setInterval(async () => {await show_latest_transactions();}, 5000);
+
+
+spreadImgOnBG(128, '../img/star.png', 20, 6);
+spreadImgOnBG(1, '../img/death_star.png', 512, 64);
+spreadImgOnBG(20, '../img/ufo.png', 25, 10);
